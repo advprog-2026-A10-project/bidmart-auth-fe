@@ -1,0 +1,22 @@
+name: Main Branch Guard
+
+on:
+  pull_request_target:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  main-branch-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Allow only staging PRs into main
+        shell: bash
+        run: |
+          if [[ "${{ github.head_ref }}" != "staging" ]]; then
+            echo "::error::Only PRs from 'staging' can target 'main'."
+            echo "::error::Current source branch: '${{ github.head_ref }}'."
+            exit 1
+          fi
