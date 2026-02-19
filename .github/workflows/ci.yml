@@ -36,6 +36,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Enforce staging as the only PR source into main
+        if: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' }}
+        shell: bash
+        run: |
+          if [[ "${{ github.head_ref }}" != "staging" ]]; then
+            echo "::error::Only pull requests from 'staging' are allowed to target 'main'."
+            echo "::error::Current source branch: '${{ github.head_ref }}'."
+            exit 1
+          fi
+
       - name: Setup stable Rust
         uses: dtolnay/rust-toolchain@stable
         with:
