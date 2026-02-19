@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - staging
+      - ci-cd
   push:
     branches:
       - main
       - staging
+      - ci-cd
 
 permissions:
   contents: read
