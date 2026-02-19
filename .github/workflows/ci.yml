@@ -85,11 +85,22 @@ jobs:
         run: |
           mkdir -p artifacts
           cargo llvm-cov clean --workspace
-          cargo llvm-cov --workspace --all-features --all-targets --summary-only --lcov --output-path artifacts/lcov.info | tee artifacts/coverage-summary.txt
+          cargo llvm-cov --workspace --all-features --all-targets --summary-only | tee artifacts/coverage-summary.txt
 
-          coverage_pct="$(awk '/^TOTAL/ {gsub("%","",$NF); print $NF}' artifacts/coverage-summary.txt | tail -n1)"
+          coverage_pct="$(awk '/^TOTAL/ {
+            for (i = NF; i >= 1; i--) {
+              if ($i ~ /%$/) {
+                gsub("%", "", $i);
+                print $i;
+                break;
+              }
+            }
+          }' artifacts/coverage-summary.txt | tail -n1)"
           if [[ -z "${coverage_pct}" ]]; then
             echo "::error::Failed to parse coverage percentage from cargo-llvm-cov output."
+            echo "::group::coverage-summary.txt"
+            cat artifacts/coverage-summary.txt
+            echo "::endgroup::"
             exit 1
           fi
           if ! [[ "${coverage_pct}" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
@@ -102,6 +113,8 @@ jobs:
 
           echo "coverage_pct=${coverage_pct}" >> "${GITHUB_OUTPUT}"
           echo "min_coverage=${MIN_COVERAGE}" >> "${GITHUB_OUTPUT}"
+
+          cargo llvm-cov --workspace --all-features --all-targets --lcov --output-path artifacts/lcov.info
 
       - name: Upload coverage + lock hash artifacts
         uses: actions/upload-artifact@v4
