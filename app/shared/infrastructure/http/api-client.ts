@@ -2,6 +2,7 @@ import { NetworkError } from "~/shared/domain/errors/network-error";
 import { NotFoundError } from "~/shared/domain/errors/not-found-error";
 import { ValidationError } from "~/shared/domain/errors/validation-error";
 import type { RequestOptions } from "./types";
+import { TokenExpiredError } from "~/shared/domain/errors/token-expired-error";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -34,6 +35,8 @@ async function parseErrorResponse(response: Response): Promise<never> {
 
   switch (response.status) {
     case 404:
+    case 410:
+      throw new TokenExpiredError(message);
       throw new NotFoundError("Resource");
     case 422:
       throw new ValidationError(message, fieldErrors);

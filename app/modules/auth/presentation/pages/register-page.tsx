@@ -13,7 +13,7 @@ export function RegisterPage() {
       { name: values.name, email: values.email, password: values.password },
       {
         onSuccess: () => {
-          navigate(`/verify-email?email=${encodeURIComponent(values.email)}`);
+          navigate(`/check-email?email=${encodeURIComponent(values.email)}`);
         },
       },
     );
