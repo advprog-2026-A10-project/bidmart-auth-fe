@@ -15,7 +15,12 @@ function createMockRepository(): MockedObject<IAuthRepository> {
     verifyEmail: vi.fn(),
     resendVerification: vi.fn(),
     logout: vi.fn(),
-  };
+    forgotPassword: vi.fn(),
+    resetPassword: vi.fn(),
+    verifyMfaTotp: vi.fn(),
+    sendMfaEmail: vi.fn(),
+    verifyMfaEmail: vi.fn(),
+};
 }
 
 const mockUser = createUser({
@@ -35,7 +40,7 @@ describe("LoginUseCase", () => {
   });
 
   it("returns a UserDTO on successful login", async () => {
-    repo.login.mockResolvedValue(mockUser);
+    repo.login.mockResolvedValue({ requiresMfa: false, user: mockUser });
 
     const result = await useCase.execute({ email: "alice@example.com", password: "secret" });
 

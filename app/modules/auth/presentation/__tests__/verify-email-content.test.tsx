@@ -52,6 +52,11 @@ describe("VerifyEmailContent — with token", () => {
       verifyEmail: { execute: vi.fn().mockResolvedValue({ message: "Email verified!" }) } as never,
       resendVerification: { execute: vi.fn() } as never,
       logout: { execute: vi.fn() } as never,
+      forgotPassword: { execute: vi.fn() } as never,
+      resetPassword: { execute: vi.fn() } as never,
+      verifyMfaTotp: { execute: vi.fn() } as never,
+      sendMfaEmail: { execute: vi.fn() } as never,
+      verifyMfaEmail: { execute: vi.fn() } as never,
     });
   });
 
@@ -65,6 +70,11 @@ describe("VerifyEmailContent — with token", () => {
       } as never,
       resendVerification: { execute: vi.fn() } as never,
       logout: { execute: vi.fn() } as never,
+      forgotPassword: { execute: vi.fn() } as never,
+      resetPassword: { execute: vi.fn() } as never,
+      verifyMfaTotp: { execute: vi.fn() } as never,
+      sendMfaEmail: { execute: vi.fn() } as never,
+      verifyMfaEmail: { execute: vi.fn() } as never,
     });
 
     renderWithProviders(<VerifyEmailContent token="abc123" />);
@@ -88,6 +98,11 @@ describe("VerifyEmailContent — with token", () => {
       } as never,
       resendVerification: { execute: vi.fn() } as never,
       logout: { execute: vi.fn() } as never,
+      forgotPassword: { execute: vi.fn() } as never,
+      resetPassword: { execute: vi.fn() } as never,
+      verifyMfaTotp: { execute: vi.fn() } as never,
+      sendMfaEmail: { execute: vi.fn() } as never,
+      verifyMfaEmail: { execute: vi.fn() } as never,
     });
 
     renderWithProviders(<VerifyEmailContent token="bad-token" />);
