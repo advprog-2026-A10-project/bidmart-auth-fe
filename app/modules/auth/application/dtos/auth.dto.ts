@@ -16,3 +16,26 @@ export type VerifyEmailDTO = {
 export type ResendVerificationDTO = {
   email: string;
 };
+
+export type ForgotPasswordDTO = {
+  email: string;
+};
+
+export type ResetPasswordDTO = {
+  token: string;
+  password: string;
+};
+
+export type VerifyMfaTotpDTO = {
+  ticket: string;
+  code: string;
+};
+
+export type SendMfaEmailDTO = {
+  ticket: string;
+};
+
+export type VerifyMfaEmailDTO = {
+  ticket: string;
+  code: string;
+};
