@@ -2,6 +2,7 @@ import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { LoginForm } from "../components/login-form";
 import { useLoginMutation } from "../hooks/use-login-mutation";
+import { MfaRequiredError } from "~/modules/auth/domain/errors/auth-errors";
 import type { LoginFormValues } from "../components/login-form";
 
 export function LoginPage() {
@@ -11,7 +12,16 @@ export function LoginPage() {
   function handleSubmit(values: LoginFormValues) {
     login.mutate(
       { email: values.email, password: values.password },
-      { onSuccess: () => navigate("/posts") },
+      {
+        onSuccess: () => navigate("/posts"),
+        onError: (error) => {
+          if (error instanceof MfaRequiredError) {
+            void navigate("/mfa", {
+              state: { ticket: error.ticket, mfaType: error.mfaType },
+            });
+          }
+        },
+      },
     );
   }
 
