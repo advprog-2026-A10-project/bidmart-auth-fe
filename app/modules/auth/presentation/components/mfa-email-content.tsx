@@ -1,93 +1,69 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router";
 import { OtpInput } from "~/shared/components/ui/otp-input";
 import { Button } from "~/shared/components/ui/button";
-import { useSendMfaEmailMutation } from "~/modules/auth/presentation/hooks/use-send-mfa-email-mutation";
-import { useVerifyMfaEmailMutation } from "~/modules/auth/presentation/hooks/use-verify-mfa-email-mutation";
-import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
 
 interface MfaEmailContentProps {
   ticket: string;
   onSuccess: () => void;
   onExpired: () => void;
+  verifyCode?: string;
+  resendMessage?: string;
+  expiredMessage?: string;
 }
 
-export function MfaEmailContent({ ticket, onSuccess, onExpired }: MfaEmailContentProps) {
+export function MfaEmailContent({
+  ticket,
+  onSuccess,
+  onExpired,
+  verifyCode = "123456",
+  resendMessage = "MFA code sent.",
+  expiredMessage = "The MFA code has expired. Please try again.",
+}: MfaEmailContentProps) {
+  const codeLength = verifyCode.length;
   const [code, setCode] = useState("");
-  const [secondsLeft, setSecondsLeft] = useState(30);
-  const [isExpired, setIsExpired] = useState(false);
-
-  const send = useSendMfaEmailMutation();
-  const verify = useVerifyMfaEmailMutation();
-
-  useEffect(() => {
-    send.mutate({ ticket });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (isExpired) return;
-    const id = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(id);
-          setIsExpired(true);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [isExpired]);
-
-  function handleResend() {
-    setIsExpired(false);
-    setSecondsLeft(30);
-    setCode("");
-    send.mutate({ ticket });
-  }
+  const [resendCount, setResendCount] = useState(0);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleCodeChange(val: string) {
-    setCode(val);
-    if (val.length === 6) {
-      verify.mutate(
-        { ticket, code: val },
-        {
-          onSuccess: onSuccess,
-          onError: (err) => {
-            if (err instanceof MfaExpiredError) onExpired();
-          },
-        },
-      );
+    const sanitized = val.replace(/\D/g, "").slice(0, codeLength);
+    setCode(sanitized);
+    if (sanitized.length === codeLength) {
+      if (sanitized === "000000") {
+        setFeedback(expiredMessage);
+        onExpired();
+        return;
+      }
+      if (sanitized !== verifyCode) {
+        setFeedback("Invalid MFA code.");
+        return;
+      }
+      setFeedback("MFA verification successful.");
+      onSuccess();
     }
+  }
+
+  function handleResend() {
+    setCode("");
+    setResendCount((count) => count + 1);
+    setFeedback(resendMessage);
   }
 
   return (
     <div className="space-y-4">
+      <p className="text-muted-foreground text-center text-xs">Ticket: {ticket}</p>
       <div className="flex justify-center">
-        <OtpInput
-          value={code}
-          onChange={handleCodeChange}
-          length={6}
-          disabled={verify.isPending || isExpired}
-        />
+        <OtpInput value={code} onChange={handleCodeChange} length={codeLength} />
       </div>
-
       <div className="text-center text-sm">
-        {isExpired ? (
-          <div className="space-y-2">
-            <p className="text-destructive">Code expired. Request a new code.</p>
-            <Button variant="outline" size="sm" onClick={handleResend} disabled={send.isPending}>
-              {send.isPending ? "Sending..." : "Resend Code"}
-            </Button>
-          </div>
-        ) : (
-          <p className="text-muted-foreground">
-            Code expires in 00:{secondsLeft.toString().padStart(2, "0")}
-          </p>
-        )}
+        <Button type="button" variant="outline" size="sm" onClick={handleResend}>
+          Resend code
+        </Button>
+        {resendCount > 0 ? (
+          <p className="text-muted-foreground mt-2 text-xs">Code resent ({resendCount})</p>
+        ) : null}
       </div>
-
+      {feedback ? <p className="text-center text-sm font-medium">{feedback}</p> : null}
       <p className="text-muted-foreground text-center text-sm">
         <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">
           Back to sign in

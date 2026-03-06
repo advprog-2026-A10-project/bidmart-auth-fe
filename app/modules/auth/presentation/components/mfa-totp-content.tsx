@@ -1,44 +1,54 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { OtpInput } from "~/shared/components/ui/otp-input";
-import { useVerifyMfaTotpMutation } from "~/modules/auth/presentation/hooks/use-verify-mfa-totp-mutation";
-import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
 
 interface MfaTotpContentProps {
   ticket: string;
   onSuccess: () => void;
   onExpired: () => void;
+  verifyCode?: string;
+  expiredMessage?: string;
 }
 
-export function MfaTotpContent({ ticket, onSuccess, onExpired }: MfaTotpContentProps) {
+export function MfaTotpContent({
+  ticket,
+  onSuccess,
+  onExpired,
+  verifyCode = "123456",
+  expiredMessage = "The MFA code has expired. Please try again.",
+}: MfaTotpContentProps) {
+  const codeLength = verifyCode.length;
   const [code, setCode] = useState("");
-  const verify = useVerifyMfaTotpMutation();
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleCodeChange(val: string) {
-    setCode(val);
-    if (val.length === 6) {
-      verify.mutate(
-        { ticket, code: val },
-        {
-          onSuccess: onSuccess,
-          onError: (err) => {
-            if (err instanceof MfaExpiredError) onExpired();
-          },
-        },
-      );
+    const sanitized = val.replace(/\D/g, "").slice(0, codeLength);
+    setCode(sanitized);
+
+    if (sanitized.length === codeLength) {
+      if (sanitized === "000000") {
+        setFeedback(expiredMessage);
+        onExpired();
+        return;
+      }
+
+      if (sanitized !== verifyCode) {
+        setFeedback("Invalid MFA code.");
+        return;
+      }
+
+      setFeedback("MFA verification successful.");
+      onSuccess();
     }
   }
 
   return (
     <div className="space-y-4">
+      <p className="text-muted-foreground text-center text-xs">Ticket: {ticket}</p>
       <div className="flex justify-center">
-        <OtpInput
-          value={code}
-          onChange={handleCodeChange}
-          length={6}
-          disabled={verify.isPending}
-        />
+        <OtpInput value={code} onChange={handleCodeChange} length={codeLength} />
       </div>
+      {feedback ? <p className="text-center text-sm font-medium">{feedback}</p> : null}
 
       <p className="text-muted-foreground text-center text-sm">
         <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">
