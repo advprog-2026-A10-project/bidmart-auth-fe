@@ -1,27 +1,27 @@
 import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { RegisterForm } from "../components/register-form";
-import { useRegisterMutation } from "../hooks/use-register-mutation";
 import type { RegisterFormValues } from "../components/register-form";
+import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const register = useRegisterMutation();
+  const registerMock = AUTH_PAGE_MOCK_PAYLOADS.register;
 
   function handleSubmit(values: RegisterFormValues) {
-    register.mutate(
-      { name: values.name, email: values.email, password: values.password },
-      {
-        onSuccess: () => {
-          navigate(`/check-email?email=${encodeURIComponent(values.email)}`);
-        },
-      },
-    );
+    const request = {
+      ...registerMock.request,
+      name: values.name,
+      email: values.email,
+      password: values.password,
+    };
+    void request;
+    void navigate(`/check-email?email=${encodeURIComponent(values.email)}`);
   }
 
   return (
     <AuthCard title="Create an account" description="Fill in the details below to get started.">
-      <RegisterForm onSubmit={handleSubmit} isSubmitting={register.isPending} />
+      <RegisterForm onSubmit={handleSubmit} isSubmitting={false} />
     </AuthCard>
   );
 }

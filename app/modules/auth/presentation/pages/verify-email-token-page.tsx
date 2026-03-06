@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { TokenExpiredError } from "~/shared/domain/errors/token-expired-error";
 import { AuthCard } from "../components/auth-card";
-import { useVerifyEmailMutation } from "../hooks/use-verify-email-mutation";
+import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
 
 /**
  * VerifyEmailTokenPage — handles 1.1.3.
@@ -11,33 +10,29 @@ import { useVerifyEmailMutation } from "../hooks/use-verify-email-mutation";
  * redirects to the appropriate result page (success / expired / invalid).
  */
 export function VerifyEmailTokenPage() {
+  const verifyEmailMock = AUTH_PAGE_MOCK_PAYLOADS.verifyEmail;
   const [searchParams] = useSearchParams();
-  const token = searchParams.get("token") ?? undefined;
+  const token = searchParams.get("token") ?? verifyEmailMock.request.token;
   const navigate = useNavigate();
-  const verifyEmail = useVerifyEmailMutation();
 
   useEffect(() => {
     if (!token) {
       // No token — shouldn't land here; redirect to check-email
-      navigate("/check-email", { replace: true });
+      void navigate("/check-email", { replace: true });
       return;
     }
 
-    verifyEmail.mutate(
-      { token },
-      {
-        onSuccess: () => {
-          navigate("/verify-email/success", { replace: true });
-        },
-        onError: (error: Error) => {
-          if (error instanceof TokenExpiredError) {
-            navigate("/verify-email/expired", { replace: true });
-          } else {
-            navigate("/verify-email/invalid", { replace: true });
-          }
-        },
-      },
-    );
+    if (token.includes("expired")) {
+      void navigate("/verify-email/expired", { replace: true });
+      return;
+    }
+
+    if (token.includes("invalid")) {
+      void navigate("/verify-email/invalid", { replace: true });
+      return;
+    }
+
+    void navigate("/verify-email/success", { replace: true });
     // Intentionally only runs on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { Mail } from "lucide-react";
 import { Button } from "~/shared/components/ui/button";
-import { useResendVerificationMutation } from "../hooks/use-resend-verification-mutation";
+import { AUTH_PAGE_MOCK_PAYLOADS } from "../pages/constant";
 
 const COOLDOWN_SECONDS = 30;
 
@@ -13,9 +13,10 @@ const COOLDOWN_SECONDS = 30;
  * with a 30-second cooldown to prevent spam.
  */
 export function CheckEmailContent({ email }: { email?: string }) {
-  const resendVerification = useResendVerificationMutation();
+  const checkEmailMock = AUTH_PAGE_MOCK_PAYLOADS.checkEmail;
   const [cooldown, setCooldown] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (cooldown <= 0) {
@@ -46,18 +47,14 @@ export function CheckEmailContent({ email }: { email?: string }) {
   }, [cooldown]);
 
   function handleResend() {
-    if (!email || cooldown > 0 || resendVerification.isPending) return;
-    resendVerification.mutate(
-      { email },
-      {
-        onSuccess: () => {
-          setCooldown(COOLDOWN_SECONDS);
-        },
-      },
-    );
+    if (!email || cooldown > 0) return;
+    const request = { ...checkEmailMock.resendRequest, email };
+    void request;
+    setResendMessage(checkEmailMock.response.resendSuccess.message);
+    setCooldown(COOLDOWN_SECONDS);
   }
 
-  const isDisabled = cooldown > 0 || resendVerification.isPending || !email;
+  const isDisabled = cooldown > 0 || !email;
 
   return (
     <div className="flex flex-col items-center gap-6 py-2 text-center">
@@ -82,12 +79,9 @@ export function CheckEmailContent({ email }: { email?: string }) {
 
       <div className="w-full space-y-3">
         <Button variant="outline" className="w-full" onClick={handleResend} disabled={isDisabled}>
-          {resendVerification.isPending
-            ? "Sending..."
-            : cooldown > 0
-              ? `Resend email (${cooldown}s)`
-              : "Resend verification email"}
+          {cooldown > 0 ? `Resend email (${cooldown}s)` : "Resend verification email"}
         </Button>
+        {resendMessage ? <p className="text-sm font-medium">{resendMessage}</p> : null}
 
         <p className="text-muted-foreground text-center text-sm">
           <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">
