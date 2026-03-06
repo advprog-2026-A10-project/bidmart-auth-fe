@@ -1,5 +1,4 @@
 import { Link } from "react-router";
-import { useGetMfaStatusQuery } from "../hooks/use-get-mfa-status-query";
 import { Button } from "~/shared/components/ui/button";
 import {
   Card,
@@ -8,29 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from "~/shared/components/ui/card";
-import { Skeleton } from "~/shared/components/ui/skeleton";
+import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useState } from "react";
 
-export default function MfaPage() {
-  const { data, isLoading, isError } = useGetMfaStatusQuery();
+export function MfaPage() {
+  const [data, setData] = useState(SETTINGS_PAGE_MOCK_PAYLOADS.security.response.mfaStatus);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <Skeleton className="h-[200px] w-full rounded-xl" />
-      </div>
-    );
-  }
-
-  if (isError || !data) {
-    return (
-      <div className="bg-destructive/10 text-destructive rounded-md p-4">
-        Failed to load MFA status.
-      </div>
-    );
+  function handleDisableMfa() {
+    setData({ mfaEnabled: false, mfaType: null });
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
   }
 
   return (
@@ -39,6 +25,11 @@ export default function MfaPage() {
         <h2 className="text-2xl font-bold tracking-tight">Two-Factor Authentication</h2>
         <p className="text-muted-foreground">Add an extra layer of security to your account.</p>
       </div>
+      {feedback ? (
+        <p className="text-sm font-medium" role="status" aria-live="polite">
+          {feedback}
+        </p>
+      ) : null}
 
       {!data.mfaEnabled ? (
         <Card>
@@ -64,13 +55,13 @@ export default function MfaPage() {
               {data.mfaType === "totp" ? "an authenticator app" : "email"} MFA.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Link
-              to="/settings/security/mfa/disable"
-              className="text-destructive text-sm font-medium underline underline-offset-4 hover:opacity-80"
-            >
-              Disable MFA
-            </Link>
+          <CardContent className="space-y-3">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/settings/security/mfa/disable">Go to disable flow</Link>
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleDisableMfa}>
+              Disable now (mock)
+            </Button>
           </CardContent>
         </Card>
       )}

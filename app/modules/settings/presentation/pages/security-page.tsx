@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { Button } from "~/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,12 +22,9 @@ export function SecurityPage() {
             <CardDescription>Change your account password.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link
-              to="/settings/security/password"
-              className="hover:text-primary text-sm font-medium underline underline-offset-4"
-            >
-              Change password →
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/settings/security/password">Change password</Link>
+            </Button>
           </CardContent>
         </Card>
         <Card>
@@ -35,12 +33,9 @@ export function SecurityPage() {
             <CardDescription>View and manage your active login sessions.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link
-              to="/settings/security/sessions"
-              className="hover:text-primary text-sm font-medium underline underline-offset-4"
-            >
-              Manage sessions →
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/settings/security/sessions">Manage sessions</Link>
+            </Button>
           </CardContent>
         </Card>
         <Card>
@@ -49,12 +44,9 @@ export function SecurityPage() {
             <CardDescription>Add an extra layer of security to your account.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link
-              to="/settings/security/mfa"
-              className="hover:text-primary text-sm font-medium underline underline-offset-4"
-            >
-              Manage 2FA →
-            </Link>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/settings/security/mfa">Manage 2FA</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

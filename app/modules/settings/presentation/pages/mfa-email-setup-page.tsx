@@ -2,8 +2,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { z } from "zod";
-import { useSetupMfaEmailMutation } from "../hooks/use-setup-mfa-email-mutation";
-import { useVerifyMfaEmailMutation } from "../hooks/use-verify-mfa-email-mutation";
 import { Button } from "~/shared/components/ui/button";
 import {
   Card,
@@ -21,6 +19,8 @@ import {
   FormMessage,
 } from "~/shared/components/ui/form";
 import { Input } from "~/shared/components/ui/input";
+import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useState } from "react";
 
 const emailVerifySchema = z.object({
   code: z.string().min(1, "Code is required."),
@@ -30,8 +30,10 @@ type EmailVerifyFormValues = z.infer<typeof emailVerifySchema>;
 
 export default function MfaEmailSetupPage() {
   const navigate = useNavigate();
-  const setupEmail = useSetupMfaEmailMutation();
-  const verifyEmail = useVerifyMfaEmailMutation();
+  const [hasSentCode, setHasSentCode] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const form = useForm<EmailVerifyFormValues>({
     resolver: zodResolver(emailVerifySchema),
@@ -43,11 +45,29 @@ export default function MfaEmailSetupPage() {
   });
 
   function onSubmit(values: EmailVerifyFormValues) {
-    verifyEmail.mutate(values, {
-      onSuccess: () => {
-        navigate("/settings/security/mfa");
-      },
-    });
+    setIsVerifying(true);
+    const request = {
+      ...SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.request.verify,
+      code: values.code,
+    };
+    void request;
+
+    if (values.code !== SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.request.verify.code) {
+      setFeedback("Invalid code. Please try again.");
+      setIsVerifying(false);
+      return;
+    }
+
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.verify.message);
+    setIsVerifying(false);
+    void navigate("/settings/security/mfa");
+  }
+
+  function handleSendCode() {
+    setIsSending(true);
+    setHasSentCode(true);
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.setup.message);
+    setIsSending(false);
   }
 
   return (
@@ -61,17 +81,22 @@ export default function MfaEmailSetupPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{!setupEmail.isSuccess ? "Send Code" : "Verify Code"}</CardTitle>
+          <CardTitle>{!hasSentCode ? "Send Code" : "Verify Code"}</CardTitle>
           <CardDescription>
-            {!setupEmail.isSuccess
+            {!hasSentCode
               ? "Click below to send a verification code to your email address."
               : "Enter the code sent to your email address."}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {!setupEmail.isSuccess ? (
-            <Button onClick={() => setupEmail.mutate()} disabled={setupEmail.isPending}>
-              {setupEmail.isPending ? "Sending..." : "Send Verification Code"}
+        <CardContent className="space-y-4">
+          {feedback ? (
+            <p className="text-sm font-medium" role="status" aria-live="polite">
+              {feedback}
+            </p>
+          ) : null}
+          {!hasSentCode ? (
+            <Button onClick={handleSendCode} disabled={isSending} className="w-full sm:w-auto">
+              {isSending ? "Sending..." : "Send Verification Code"}
             </Button>
           ) : (
             <div className="space-y-6">
@@ -88,7 +113,14 @@ export default function MfaEmailSetupPage() {
                       <FormItem>
                         <FormLabel>Verification Code</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter code" autoComplete="off" {...field} />
+                          <Input
+                            placeholder="Enter code"
+                            autoComplete="one-time-code"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            maxLength={6}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -98,8 +130,8 @@ export default function MfaEmailSetupPage() {
                     <Button asChild variant="ghost" className="w-full">
                       <Link to="/settings/security/mfa">Cancel</Link>
                     </Button>
-                    <Button type="submit" className="w-full" disabled={verifyEmail.isPending}>
-                      {verifyEmail.isPending ? "Verifying..." : "Verify"}
+                    <Button type="submit" className="w-full" disabled={isVerifying}>
+                      {isVerifying ? "Verifying..." : "Verify"}
                     </Button>
                   </div>
                 </form>
@@ -108,9 +140,9 @@ export default function MfaEmailSetupPage() {
                 Didn&apos;t receive the code?{" "}
                 <button
                   type="button"
-                  onClick={() => setupEmail.mutate()}
+                  onClick={handleSendCode}
                   className="hover:text-foreground underline"
-                  disabled={setupEmail.isPending}
+                  disabled={isSending}
                 >
                   Resend
                 </button>

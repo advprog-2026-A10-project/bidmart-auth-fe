@@ -1,5 +1,5 @@
-import { SecurityPage } from "~/modules/settings/presentation/pages/security-page";
+import { Outlet } from "react-router";
 
 export default function SettingsSecurityRoute() {
-  return <SecurityPage />;
+  return <Outlet />;
 }

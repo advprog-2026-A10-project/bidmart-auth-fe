@@ -1,38 +1,31 @@
 import { ProfileForm } from "~/modules/settings/presentation/components/profile-form";
-import { useGetProfileQuery } from "~/modules/settings/presentation/hooks/use-get-profile-query";
-import { useUpdateProfileMutation } from "~/modules/settings/presentation/hooks/use-update-profile-mutation";
-import { Skeleton } from "~/shared/components/ui/skeleton";
+import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useState } from "react";
 
 export function ProfilePage() {
-  const { data: profile, isLoading, isError } = useGetProfileQuery();
-  const { mutate, isPending } = useUpdateProfileMutation();
+  const profile = SETTINGS_PAGE_MOCK_PAYLOADS.profile.response.get;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-[200px]" />
-          <Skeleton className="h-4 w-[300px]" />
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  if (isError || !profile) {
-    return <div className="text-destructive">Failed to load profile. Please try again later.</div>;
+  function handleSubmit(values: { name: string; address: string; postalCode: string }) {
+    setIsSubmitting(true);
+    const request = { ...SETTINGS_PAGE_MOCK_PAYLOADS.profile.request.update, ...values };
+    void request;
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.profile.response.update.message);
+    setIsSubmitting(false);
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Profile</h3>
+        <h2 className="text-2xl font-bold tracking-tight">Profile</h2>
         <p className="text-muted-foreground text-sm">Update your personal information.</p>
       </div>
+      {feedback ? (
+        <p className="text-sm font-medium" role="status" aria-live="polite">
+          {feedback}
+        </p>
+      ) : null}
       <ProfileForm
         key={profile.id}
         defaultValues={{
@@ -40,8 +33,8 @@ export function ProfilePage() {
           address: profile.address,
           postalCode: profile.postalCode,
         }}
-        onSubmit={mutate}
-        isSubmitting={isPending}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
       />
     </div>
   );

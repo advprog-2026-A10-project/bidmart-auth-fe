@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "~/shared/components/ui/button";
+import { Checkbox } from "~/shared/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "~/shared/components/ui/form";
 
 const notificationsFormSchema = z.object({
@@ -40,17 +41,18 @@ export function NotificationsForm({
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Email Notifications</FormLabel>
+                  <FormLabel htmlFor="email-notifications" className="text-base">
+                    Email Notifications
+                  </FormLabel>
                   <div className="text-muted-foreground text-sm">
                     Receive emails about your account activity.
                   </div>
                 </div>
                 <FormControl>
-                  <input
-                    type="checkbox"
+                  <Checkbox
+                    id="email-notifications"
                     checked={field.value}
-                    onChange={field.onChange}
-                    className="text-primary focus:ring-primary h-5 w-5 rounded border-gray-300"
+                    onCheckedChange={field.onChange}
                   />
                 </FormControl>
               </FormItem>
@@ -62,17 +64,18 @@ export function NotificationsForm({
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Push Notifications</FormLabel>
+                  <FormLabel htmlFor="push-notifications" className="text-base">
+                    Push Notifications
+                  </FormLabel>
                   <div className="text-muted-foreground text-sm">
                     Receive push notifications on your devices.
                   </div>
                 </div>
                 <FormControl>
-                  <input
-                    type="checkbox"
+                  <Checkbox
+                    id="push-notifications"
                     checked={field.value}
-                    onChange={field.onChange}
-                    className="text-primary focus:ring-primary h-5 w-5 rounded border-gray-300"
+                    onCheckedChange={field.onChange}
                   />
                 </FormControl>
               </FormItem>
@@ -84,17 +87,18 @@ export function NotificationsForm({
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Marketing Emails</FormLabel>
+                  <FormLabel htmlFor="marketing-emails" className="text-base">
+                    Marketing Emails
+                  </FormLabel>
                   <div className="text-muted-foreground text-sm">
                     Receive emails about new products, features, and more.
                   </div>
                 </div>
                 <FormControl>
-                  <input
-                    type="checkbox"
+                  <Checkbox
+                    id="marketing-emails"
                     checked={field.value}
-                    onChange={field.onChange}
-                    className="text-primary focus:ring-primary h-5 w-5 rounded border-gray-300"
+                    onCheckedChange={field.onChange}
                   />
                 </FormControl>
               </FormItem>
@@ -106,17 +110,18 @@ export function NotificationsForm({
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm">
                 <div className="space-y-0.5">
-                  <FormLabel className="text-base">Security Alerts</FormLabel>
+                  <FormLabel htmlFor="security-alerts" className="text-base">
+                    Security Alerts
+                  </FormLabel>
                   <div className="text-muted-foreground text-sm">
                     Receive emails about your account security.
                   </div>
                 </div>
                 <FormControl>
-                  <input
-                    type="checkbox"
+                  <Checkbox
+                    id="security-alerts"
                     checked={field.value}
-                    onChange={field.onChange}
-                    className="text-primary focus:ring-primary h-5 w-5 rounded border-gray-300"
+                    onCheckedChange={field.onChange}
                   />
                 </FormControl>
               </FormItem>

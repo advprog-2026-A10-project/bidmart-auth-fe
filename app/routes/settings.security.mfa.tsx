@@ -1,5 +1,5 @@
-import MfaPage from "~/modules/settings/presentation/pages/mfa-page";
+import { Outlet } from "react-router";
 
 export default function SettingsSecurityMfaRoute() {
-  return <MfaPage />;
+  return <Outlet />;
 }

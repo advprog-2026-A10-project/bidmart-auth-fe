@@ -35,6 +35,6 @@ export { ChangePasswordPage } from "./pages/change-password-page";
 export { SessionsPage } from "./pages/sessions-page";
 export { MfaDisablePage } from "./pages/mfa-disable-page";
 export { NotificationsPage } from "./pages/notifications-page";
-export { default as MfaPage } from "./pages/mfa-page";
+export { MfaPage } from "./pages/mfa-page";
 export { default as MfaTotpSetupPage } from "./pages/mfa-totp-setup-page";
 export { default as MfaEmailSetupPage } from "./pages/mfa-email-setup-page";

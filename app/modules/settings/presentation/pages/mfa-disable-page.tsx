@@ -6,19 +6,26 @@ import {
   CardHeader,
   CardTitle,
 } from "~/shared/components/ui/card";
-import { useDisableMfaMutation } from "../hooks/use-disable-mfa-mutation";
 import { DisableMfaForm } from "../components/disable-mfa-form";
 import type { DisableMfaFormValues } from "../components/disable-mfa-form";
+import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useState } from "react";
 
 export function MfaDisablePage() {
   const navigate = useNavigate();
-  const disableMfa = useDisableMfaMutation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleSubmit(values: DisableMfaFormValues) {
-    disableMfa.mutate(
-      { password: values.password },
-      { onSuccess: () => navigate("/settings/security/mfa") },
-    );
+    setIsSubmitting(true);
+    const request = {
+      ...SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.request.disable,
+      password: values.password,
+    };
+    void request;
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
+    setIsSubmitting(false);
+    void navigate("/settings/security/mfa");
   }
 
   return (
@@ -37,7 +44,12 @@ export function MfaDisablePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DisableMfaForm onSubmit={handleSubmit} isSubmitting={disableMfa.isPending} />
+          {feedback ? (
+            <p className="mb-4 text-sm font-medium" role="status" aria-live="polite">
+              {feedback}
+            </p>
+          ) : null}
+          <DisableMfaForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </CardContent>
       </Card>
     </div>

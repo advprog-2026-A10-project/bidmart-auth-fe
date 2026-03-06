@@ -1,38 +1,31 @@
-import { Skeleton } from "~/shared/components/ui/skeleton";
 import { Button } from "~/shared/components/ui/button";
 import { SessionCard } from "../components/session-card";
-import { useGetSessionsQuery } from "../hooks/use-get-sessions-query";
-import { useRevokeSessionMutation } from "../hooks/use-revoke-session-mutation";
-import { useRevokeAllSessionsMutation } from "../hooks/use-revoke-all-sessions-mutation";
+import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useState } from "react";
 
 export function SessionsPage() {
-  const { data: sessions, isLoading, isError } = useGetSessionsQuery();
-  const revokeSession = useRevokeSessionMutation();
-  const revokeAll = useRevokeAllSessionsMutation();
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="mt-2 h-4 w-64" />
-          </div>
-        </div>
-        <div className="space-y-3">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return <div className="p-4 text-center text-red-500">Failed to load sessions.</div>;
-  }
+  const [sessions, setSessions] = useState(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.get);
+  const [isRevokingAll, setIsRevokingAll] = useState(false);
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const hasOtherSessions = sessions?.some((s) => !s.isCurrent);
+
+  function handleRevokeSession(sessionId: string) {
+    setRevokingSessionId(sessionId);
+    const request = { ...SETTINGS_PAGE_MOCK_PAYLOADS.sessions.request.revoke, sessionId };
+    void request;
+    setSessions((current) => current.filter((session) => session.id !== sessionId));
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revoke.message);
+    setRevokingSessionId(null);
+  }
+
+  function handleRevokeAll() {
+    setIsRevokingAll(true);
+    setSessions((current) => current.filter((session) => session.isCurrent));
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revokeAll.message);
+    setIsRevokingAll(false);
+  }
 
   return (
     <div className="space-y-6">
@@ -45,22 +38,25 @@ export function SessionsPage() {
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => revokeAll.mutate()}
-            disabled={revokeAll.isPending}
+            onClick={handleRevokeAll}
+            disabled={isRevokingAll}
           >
-            {revokeAll.isPending ? "Revoking..." : "Revoke all other sessions"}
+            {isRevokingAll ? "Revoking..." : "Revoke all other sessions"}
           </Button>
         )}
       </div>
+      {feedback ? (
+        <p className="text-sm font-medium" role="status" aria-live="polite">
+          {feedback}
+        </p>
+      ) : null}
       <div className="space-y-3">
         {sessions?.map((session) => (
           <SessionCard
             key={session.id}
             session={session}
-            onRevoke={(id) => revokeSession.mutate({ sessionId: id })}
-            isRevoking={
-              revokeSession.isPending && revokeSession.variables?.sessionId === session.id
-            }
+            onRevoke={handleRevokeSession}
+            isRevoking={revokingSessionId === session.id}
           />
         ))}
       </div>

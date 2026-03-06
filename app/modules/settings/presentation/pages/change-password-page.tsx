@@ -9,16 +9,23 @@ import {
   ChangePasswordForm,
   type ChangePasswordFormValues,
 } from "../components/change-password-form";
-import { useChangePasswordMutation } from "../hooks/use-change-password-mutation";
+import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useState } from "react";
 
 export function ChangePasswordPage() {
-  const changePassword = useChangePasswordMutation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const handleSubmit = async (values: ChangePasswordFormValues) => {
-    await changePassword.mutateAsync({
+    setIsSubmitting(true);
+    const request = {
+      ...SETTINGS_PAGE_MOCK_PAYLOADS.changePassword.request.change,
       currentPassword: values.currentPassword,
       newPassword: values.newPassword,
-    });
+    };
+    void request;
+    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.changePassword.response.success.message);
+    setIsSubmitting(false);
   };
 
   return (
@@ -33,7 +40,12 @@ export function ChangePasswordPage() {
           <CardDescription>Enter your current password and choose a new one.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChangePasswordForm onSubmit={handleSubmit} isSubmitting={changePassword.isPending} />
+          {feedback ? (
+            <p className="mb-4 text-sm font-medium" role="status" aria-live="polite">
+              {feedback}
+            </p>
+          ) : null}
+          <ChangePasswordForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </CardContent>
       </Card>
     </div>
