@@ -3,7 +3,6 @@ import { NotFoundError } from "~/shared/domain/errors/not-found-error";
 import { ValidationError } from "~/shared/domain/errors/validation-error";
 import { GoneError } from "~/shared/domain/errors/gone-error";
 import type { RequestOptions } from "./types";
-import { TokenExpiredError } from "~/shared/domain/errors/token-expired-error";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -36,8 +35,6 @@ async function parseErrorResponse(response: Response): Promise<never> {
 
   switch (response.status) {
     case 404:
-    case 410:
-      throw new TokenExpiredError(message);
       throw new NotFoundError("Resource");
     case 410:
       throw new GoneError(message);
