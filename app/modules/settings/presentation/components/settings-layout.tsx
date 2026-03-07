@@ -58,9 +58,7 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
         </header>
-        <div className="w-full max-w-2xl px-6 py-6">
-          {children}
-        </div>
+        <div className="w-full max-w-2xl px-6 py-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

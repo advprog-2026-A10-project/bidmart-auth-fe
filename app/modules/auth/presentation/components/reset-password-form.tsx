@@ -33,10 +33,7 @@ interface ResetPasswordFormProps {
   isSubmitting?: boolean;
 }
 
-export function ResetPasswordForm({
-  onSubmit,
-  isSubmitting = false,
-}: ResetPasswordFormProps) {
+export function ResetPasswordForm({ onSubmit, isSubmitting = false }: ResetPasswordFormProps) {
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordFormSchema),
     defaultValues: { password: "", confirmPassword: "" },

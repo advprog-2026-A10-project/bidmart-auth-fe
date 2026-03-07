@@ -20,7 +20,7 @@ function createMockRepository(): MockedObject<IAuthRepository> {
     verifyMfaTotp: vi.fn(),
     sendMfaEmail: vi.fn(),
     verifyMfaEmail: vi.fn(),
-};
+  };
 }
 
 const mockUser = createUser({

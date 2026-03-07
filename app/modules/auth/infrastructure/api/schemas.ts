@@ -46,10 +46,7 @@ export const loginSuccessApiSchema = z.object({
 });
 
 // Union: login can return either
-export const loginResponseApiSchema = z.union([
-  mfaRequiredApiSchema,
-  loginSuccessApiSchema,
-]);
+export const loginResponseApiSchema = z.union([mfaRequiredApiSchema, loginSuccessApiSchema]);
 
 // MFA verify response (totp or email)
 export const mfaVerifyApiSchema = z.object({
