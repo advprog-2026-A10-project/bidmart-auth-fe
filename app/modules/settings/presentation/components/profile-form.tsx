@@ -78,9 +78,22 @@ export function ProfileForm({ defaultValues, onSubmit, isSubmitting }: ProfileFo
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving..." : "Save changes"}
-        </Button>
+        <div
+          className={[
+            "bg-background fixed right-0 bottom-0 left-0 z-10 flex items-center justify-between border-t px-6 py-3 shadow-md transition-transform duration-200",
+            form.formState.isDirty ? "translate-y-0" : "translate-y-full",
+          ].join(" ")}
+        >
+          <p className="text-muted-foreground text-sm">You have unsaved changes.</p>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => form.reset()}>
+              Discard
+            </Button>
+            <Button type="submit" size="sm" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </div>
       </form>
     </Form>
   );
