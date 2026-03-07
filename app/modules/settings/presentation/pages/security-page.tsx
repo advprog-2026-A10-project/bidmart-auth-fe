@@ -40,12 +40,12 @@ export function SecurityPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Two-Factor Authentication</CardTitle>
+            <CardTitle>Multi-Factor Authentication</CardTitle>
             <CardDescription>Add an extra layer of security to your account.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" size="sm">
-              <Link to="/settings/security/mfa">Manage 2FA</Link>
+              <Link to="/settings/security/mfa">Manage MFA</Link>
             </Button>
           </CardContent>
         </Card>

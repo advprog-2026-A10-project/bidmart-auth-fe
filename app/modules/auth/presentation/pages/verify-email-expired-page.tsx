@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Clock } from "lucide-react";
-import { AuthCard } from "~/modules/auth/presentation/components/auth-card";
+import { AuthCard } from "../components/auth-card";
 import { Button } from "~/shared/components/ui/button";
 
 /**

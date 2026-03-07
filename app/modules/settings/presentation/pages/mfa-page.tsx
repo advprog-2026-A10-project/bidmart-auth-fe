@@ -22,7 +22,7 @@ export function MfaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Two-Factor Authentication</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Multi-Factor Authentication</h2>
         <p className="text-muted-foreground">Add an extra layer of security to your account.</p>
       </div>
       {feedback ? (
@@ -35,7 +35,9 @@ export function MfaPage() {
         <Card>
           <CardHeader>
             <CardTitle>MFA not enabled</CardTitle>
-            <CardDescription>Choose a method to set up two-factor authentication.</CardDescription>
+            <CardDescription>
+              Choose a method to set up multi-factor authentication.
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="outline">

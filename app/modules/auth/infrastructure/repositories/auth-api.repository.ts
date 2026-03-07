@@ -18,7 +18,6 @@ import {
   registerApiSchema,
 } from "../api/schemas";
 import { AuthApiMapper } from "../api/auth-api.mapper";
-import { TokenExpiredError } from "~/shared/domain/errors/token-expired-error";
 import { NetworkError } from "~/shared/domain/errors/network-error";
 
 /**

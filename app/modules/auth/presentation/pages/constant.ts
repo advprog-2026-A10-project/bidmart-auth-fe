@@ -4,12 +4,8 @@ import type {
   ResendVerificationDTO,
   VerifyEmailDTO,
   ForgotPasswordDTO,
-  LoginDTO,
-  RegisterDTO,
-  ResendVerificationDTO,
   ResetPasswordDTO,
   SendMfaEmailDTO,
-  VerifyEmailDTO,
   VerifyMfaEmailDTO,
   VerifyMfaTotpDTO,
 } from "~/modules/auth/application/dtos/auth.dto";

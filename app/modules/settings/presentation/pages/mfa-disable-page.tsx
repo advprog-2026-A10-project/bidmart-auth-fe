@@ -31,7 +31,7 @@ export function MfaDisablePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Disable Two-Factor Authentication</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Disable Multi-Factor Authentication</h2>
         <p className="text-muted-foreground text-sm">
           Enter your password to confirm disabling MFA.
         </p>

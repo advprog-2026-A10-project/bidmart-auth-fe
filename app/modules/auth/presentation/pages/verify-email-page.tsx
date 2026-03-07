@@ -19,7 +19,7 @@ export function VerifyEmailPage() {
         email={email}
         verifySuccessMessage={verifyEmailMock.response.success.message}
         resendSuccessMessage={verifyEmailMock.response.resendSuccess.message}
-        invalidTokenMessage={verifyEmailMock.response.error.message}
+        invalidTokenMessage={verifyEmailMock.response.invalidToken.message}
       />
     </AuthCard>
   );
