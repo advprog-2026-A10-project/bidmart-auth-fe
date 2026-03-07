@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
@@ -36,7 +37,6 @@ export default function MfaTotpSetupPage() {
   } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   const form = useForm<TotpVerifyFormValues>({
     resolver: zodResolver(totpVerifySchema),
@@ -56,12 +56,12 @@ export default function MfaTotpSetupPage() {
     void request;
 
     if (values.code !== SETTINGS_PAGE_MOCK_PAYLOADS.mfaTotp.request.verify.code) {
-      setFeedback("Invalid code. Please try again.");
+      toast.error("Invalid code. Please try again.");
       setIsVerifying(false);
       return;
     }
 
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaTotp.response.verify.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaTotp.response.verify.message);
     setIsVerifying(false);
     void navigate("/settings/security/mfa");
   }
@@ -97,11 +97,6 @@ export default function MfaTotpSetupPage() {
             </Button>
           ) : (
             <div className="space-y-6">
-              {feedback ? (
-                <p className="text-sm font-medium" role="status" aria-live="polite">
-                  {feedback}
-                </p>
-              ) : null}
               <div className="bg-muted/50 flex flex-col items-center gap-4 rounded-lg border p-4">
                 {setupData.qrCodeUrl && (
                   <img

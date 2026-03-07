@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router";
 import { OtpInput } from "~/shared/components/ui/otp-input";
@@ -19,7 +20,6 @@ export function MfaTotpContent({
 }: MfaTotpContentProps) {
   const codeLength = verifyCode.length;
   const [code, setCode] = useState("");
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleCodeChange(val: string) {
     const sanitized = val.replace(/\D/g, "").slice(0, codeLength);
@@ -27,17 +27,17 @@ export function MfaTotpContent({
 
     if (sanitized.length === codeLength) {
       if (sanitized === "000000") {
-        setFeedback(expiredMessage);
+        toast.error(expiredMessage);
         onExpired();
         return;
       }
 
       if (sanitized !== verifyCode) {
-        setFeedback("Invalid MFA code.");
+        toast.error("Invalid MFA code.");
         return;
       }
 
-      setFeedback("MFA verification successful.");
+      toast.success("MFA verification successful.");
       onSuccess();
     }
   }
@@ -48,7 +48,6 @@ export function MfaTotpContent({
       <div className="flex justify-center">
         <OtpInput value={code} onChange={handleCodeChange} length={codeLength} />
       </div>
-      {feedback ? <p className="text-center text-sm font-medium">{feedback}</p> : null}
 
       <p className="text-muted-foreground text-center text-sm">
         <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">

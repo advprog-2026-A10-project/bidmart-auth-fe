@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
@@ -33,7 +34,6 @@ export default function MfaEmailSetupPage() {
   const [hasSentCode, setHasSentCode] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   const form = useForm<EmailVerifyFormValues>({
     resolver: zodResolver(emailVerifySchema),
@@ -53,12 +53,12 @@ export default function MfaEmailSetupPage() {
     void request;
 
     if (values.code !== SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.request.verify.code) {
-      setFeedback("Invalid code. Please try again.");
+      toast.error("Invalid code. Please try again.");
       setIsVerifying(false);
       return;
     }
 
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.verify.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.verify.message);
     setIsVerifying(false);
     void navigate("/settings/security/mfa");
   }
@@ -66,7 +66,7 @@ export default function MfaEmailSetupPage() {
   function handleSendCode() {
     setIsSending(true);
     setHasSentCode(true);
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.setup.message);
+    toast.info(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.setup.message);
     setIsSending(false);
   }
 
@@ -89,11 +89,6 @@ export default function MfaEmailSetupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {feedback ? (
-            <p className="text-sm font-medium" role="status" aria-live="polite">
-              {feedback}
-            </p>
-          ) : null}
           {!hasSentCode ? (
             <Button onClick={handleSendCode} disabled={isSending} className="w-full sm:w-auto">
               {isSending ? "Sending..." : "Send Verification Code"}

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router";
 import { OtpInput } from "~/shared/components/ui/otp-input";
@@ -23,22 +24,21 @@ export function MfaEmailContent({
   const codeLength = verifyCode.length;
   const [code, setCode] = useState("");
   const [resendCount, setResendCount] = useState(0);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleCodeChange(val: string) {
     const sanitized = val.replace(/\D/g, "").slice(0, codeLength);
     setCode(sanitized);
     if (sanitized.length === codeLength) {
       if (sanitized === "000000") {
-        setFeedback(expiredMessage);
+        toast.error(expiredMessage);
         onExpired();
         return;
       }
       if (sanitized !== verifyCode) {
-        setFeedback("Invalid MFA code.");
+        toast.error("Invalid MFA code.");
         return;
       }
-      setFeedback("MFA verification successful.");
+      toast.success("MFA verification successful.");
       onSuccess();
     }
   }
@@ -46,7 +46,7 @@ export function MfaEmailContent({
   function handleResend() {
     setCode("");
     setResendCount((count) => count + 1);
-    setFeedback(resendMessage);
+    toast.info(resendMessage);
   }
 
   return (
@@ -63,7 +63,6 @@ export function MfaEmailContent({
           <p className="text-muted-foreground mt-2 text-xs">Code resent ({resendCount})</p>
         ) : null}
       </div>
-      {feedback ? <p className="text-center text-sm font-medium">{feedback}</p> : null}
       <p className="text-muted-foreground text-center text-sm">
         <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">
           Back to sign in

@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -14,7 +15,6 @@ import { useState } from "react";
 
 export function ChangePasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   const handleSubmit = async (values: ChangePasswordFormValues) => {
     setIsSubmitting(true);
@@ -24,7 +24,7 @@ export function ChangePasswordPage() {
       newPassword: values.newPassword,
     };
     void request;
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.changePassword.response.success.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.changePassword.response.success.message);
     setIsSubmitting(false);
   };
 
@@ -40,11 +40,6 @@ export function ChangePasswordPage() {
           <CardDescription>Enter your current password and choose a new one.</CardDescription>
         </CardHeader>
         <CardContent>
-          {feedback ? (
-            <p className="mb-4 text-sm font-medium" role="status" aria-live="polite">
-              {feedback}
-            </p>
-          ) : null}
           <ChangePasswordForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </CardContent>
       </Card>

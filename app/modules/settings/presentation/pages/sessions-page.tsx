@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Button } from "~/shared/components/ui/button";
 import { SessionCard } from "../components/session-card";
 import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
@@ -7,7 +8,6 @@ export function SessionsPage() {
   const [sessions, setSessions] = useState(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.get);
   const [isRevokingAll, setIsRevokingAll] = useState(false);
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   const hasOtherSessions = sessions?.some((s) => !s.isCurrent);
 
@@ -16,14 +16,14 @@ export function SessionsPage() {
     const request = { ...SETTINGS_PAGE_MOCK_PAYLOADS.sessions.request.revoke, sessionId };
     void request;
     setSessions((current) => current.filter((session) => session.id !== sessionId));
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revoke.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revoke.message);
     setRevokingSessionId(null);
   }
 
   function handleRevokeAll() {
     setIsRevokingAll(true);
     setSessions((current) => current.filter((session) => session.isCurrent));
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revokeAll.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revokeAll.message);
     setIsRevokingAll(false);
   }
 
@@ -45,11 +45,6 @@ export function SessionsPage() {
           </Button>
         )}
       </div>
-      {feedback ? (
-        <p className="text-sm font-medium" role="status" aria-live="polite">
-          {feedback}
-        </p>
-      ) : null}
       <div className="space-y-3">
         {sessions?.map((session) => (
           <SessionCard

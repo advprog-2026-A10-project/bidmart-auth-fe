@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { NotificationsForm } from "~/modules/settings/presentation/components/notifications-form";
 import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
 import { useState } from "react";
@@ -5,7 +6,6 @@ import { useState } from "react";
 export function NotificationsPage() {
   const preferences = SETTINGS_PAGE_MOCK_PAYLOADS.notifications.response.get;
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleSubmit(values: {
     emailNotifications: boolean;
@@ -16,7 +16,7 @@ export function NotificationsPage() {
     setIsSubmitting(true);
     const request = { ...SETTINGS_PAGE_MOCK_PAYLOADS.notifications.request.update, ...values };
     void request;
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.notifications.response.update.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.notifications.response.update.message);
     setIsSubmitting(false);
   }
 
@@ -26,11 +26,6 @@ export function NotificationsPage() {
         <h2 className="text-2xl font-bold tracking-tight">Notifications</h2>
         <p className="text-muted-foreground text-sm">Configure how you receive notifications.</p>
       </div>
-      {feedback ? (
-        <p className="text-sm font-medium" role="status" aria-live="polite">
-          {feedback}
-        </p>
-      ) : null}
       <NotificationsForm
         key={JSON.stringify(preferences)}
         defaultValues={{

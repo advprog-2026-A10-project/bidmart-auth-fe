@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Link } from "react-router";
 import { Button } from "~/shared/components/ui/button";
 import {
@@ -12,11 +13,10 @@ import { useState } from "react";
 
 export function MfaPage() {
   const [data, setData] = useState(SETTINGS_PAGE_MOCK_PAYLOADS.security.response.mfaStatus);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleDisableMfa() {
     setData({ mfaEnabled: false, mfaType: null });
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
   }
 
   return (
@@ -25,12 +25,6 @@ export function MfaPage() {
         <h2 className="text-2xl font-bold tracking-tight">Multi-Factor Authentication</h2>
         <p className="text-muted-foreground">Add an extra layer of security to your account.</p>
       </div>
-      {feedback ? (
-        <p className="text-sm font-medium" role="status" aria-live="polite">
-          {feedback}
-        </p>
-      ) : null}
-
       {!data.mfaEnabled ? (
         <Card>
           <CardHeader>

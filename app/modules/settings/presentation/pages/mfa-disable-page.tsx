@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import {
   Card,
@@ -14,7 +15,6 @@ import { useState } from "react";
 export function MfaDisablePage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   function handleSubmit(values: DisableMfaFormValues) {
     setIsSubmitting(true);
@@ -23,7 +23,7 @@ export function MfaDisablePage() {
       password: values.password,
     };
     void request;
-    setFeedback(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
+    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
     setIsSubmitting(false);
     void navigate("/settings/security/mfa");
   }
@@ -44,11 +44,6 @@ export function MfaDisablePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {feedback ? (
-            <p className="mb-4 text-sm font-medium" role="status" aria-live="polite">
-              {feedback}
-            </p>
-          ) : null}
           <DisableMfaForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </CardContent>
       </Card>
