@@ -9,16 +9,18 @@ export function RegisterPage() {
   const registerMock = AUTH_PAGE_MOCK_PAYLOADS.register;
 
   function handleSubmit(values: RegisterFormValues) {
-    const request = registerMock.request;
+    const request = {
+      ...registerMock.request,
+      name: values.name,
+      email: values.email,
+      password: values.password,
+    };
     void request;
-    void navigate(`/verify-email?email=${encodeURIComponent(values.email)}`);
+    void navigate(`/check-email?email=${encodeURIComponent(values.email)}`);
   }
 
   return (
-    <AuthCard
-      title="Create an account"
-      description="Placeholder registration using mock request/response payloads."
-    >
+    <AuthCard title="Create an account" description="Fill in the details below to get started.">
       <RegisterForm onSubmit={handleSubmit} isSubmitting={false} />
     </AuthCard>
   );

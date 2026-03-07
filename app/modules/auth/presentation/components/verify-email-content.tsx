@@ -36,7 +36,6 @@ export function VerifyEmailContent({
     );
   }
 
-  // Token present — show verification status
   if (token) {
     if (verifyEmail.isPending) {
       return (
@@ -51,17 +50,10 @@ export function VerifyEmailContent({
       );
     }
 
-    if (verifyEmail.isSuccess) {
-      return (
-        <div className="flex flex-col items-center gap-4 py-4 text-center">
-          <p className="text-sm font-medium text-green-600">
-            {verifyEmail.data.message || "Your email has been verified!"}
-          </p>
-          <Button asChild>
-            <Link to="/login">Continue to sign in</Link>
-          </Button>
-        </div>
-      );
+  function handleResend() {
+    if (!resendEmail.trim()) {
+      setFeedback("Email is required.");
+      return;
     }
 
     if (verifyEmail.isError) {

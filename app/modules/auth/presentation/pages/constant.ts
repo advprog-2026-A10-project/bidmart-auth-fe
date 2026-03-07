@@ -1,4 +1,8 @@
 import type {
+  LoginDTO,
+  RegisterDTO,
+  ResendVerificationDTO,
+  VerifyEmailDTO,
   ForgotPasswordDTO,
   LoginDTO,
   RegisterDTO,
@@ -63,6 +67,24 @@ export const AUTH_PAGE_MOCK_PAYLOADS = {
       success: {
         message: "Email verified.",
       } satisfies VerifyEmailSuccessResponse,
+      resendSuccess: {
+        message: "Verification email sent.",
+      } satisfies ResendVerificationSuccessResponse,
+      tokenExpired: {
+        message: "Token expired.",
+        code: "TOKEN_EXPIRED",
+      },
+      invalidToken: {
+        message: "Invalid verification token.",
+        code: "INVALID_VERIFICATION_TOKEN",
+      },
+    },
+  },
+  checkEmail: {
+    resendRequest: {
+      email: "alice@example.com",
+    } satisfies ResendVerificationDTO,
+    response: {
       resendSuccess: {
         message: "Verification email sent.",
       } satisfies ResendVerificationSuccessResponse,

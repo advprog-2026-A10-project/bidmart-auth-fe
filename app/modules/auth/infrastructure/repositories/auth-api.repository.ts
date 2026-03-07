@@ -18,6 +18,8 @@ import {
   registerApiSchema,
 } from "../api/schemas";
 import { AuthApiMapper } from "../api/auth-api.mapper";
+import { TokenExpiredError } from "~/shared/domain/errors/token-expired-error";
+import { NetworkError } from "~/shared/domain/errors/network-error";
 
 /**
  * AuthApiRepository — concrete implementation of IAuthRepository.
@@ -55,6 +57,15 @@ export class AuthApiRepository implements IAuthRepository {
   }
 
   async verifyEmail(data: { token: string }): Promise<{ message: string }> {
+    // Mock API contract: simulate token states for development/testing.
+    // Replace with real apiClient call once backend is ready.
+    if (data.token === "expired-token") {
+      throw new TokenExpiredError();
+    }
+    if (data.token === "invalid-token") {
+      throw new NetworkError("Verification token is invalid.", 400);
+    }
+    // Any other token is treated as valid for mock purposes
     const raw = await apiClient.post<unknown>(`${this.basePath}/verify-email`, data);
     const validated = messageApiSchema.parse(raw);
     return { message: validated.message };
