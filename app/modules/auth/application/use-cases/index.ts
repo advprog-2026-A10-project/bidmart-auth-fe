@@ -3,3 +3,8 @@ export { RegisterUseCase } from "./register.use-case";
 export { VerifyEmailUseCase } from "./verify-email.use-case";
 export { ResendVerificationUseCase } from "./resend-verification.use-case";
 export { LogoutUseCase } from "./logout.use-case";
+export { ForgotPasswordUseCase } from "./forgot-password.use-case";
+export { ResetPasswordUseCase } from "./reset-password.use-case";
+export { VerifyMfaTotpUseCase } from "./verify-mfa-totp.use-case";
+export { SendMfaEmailUseCase } from "./send-mfa-email.use-case";
+export { VerifyMfaEmailUseCase } from "./verify-mfa-email.use-case";

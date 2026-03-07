@@ -4,3 +4,8 @@ export { useVerifyEmailMutation } from "./use-verify-email-mutation";
 export { useResendVerificationMutation } from "./use-resend-verification-mutation";
 export { useLogoutMutation } from "./use-logout-mutation";
 export { useAuthQuery } from "./use-auth-query";
+export { useForgotPasswordMutation } from "./use-forgot-password-mutation";
+export { useResetPasswordMutation } from "./use-reset-password-mutation";
+export { useVerifyMfaTotpMutation } from "./use-verify-mfa-totp-mutation";
+export { useSendMfaEmailMutation } from "./use-send-mfa-email-mutation";
+export { useVerifyMfaEmailMutation } from "./use-verify-mfa-email-mutation";

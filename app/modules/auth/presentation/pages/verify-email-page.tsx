@@ -12,13 +12,14 @@ export function VerifyEmailPage() {
   return (
     <AuthCard
       title="Verify your email"
-      description={token ? undefined : "Check your inbox for the verification link."}
+      description="Placeholder verify-email using mock payload contract."
     >
       <VerifyEmailContent
         token={token}
         email={email}
-        mockVerifySuccessMessage={verifyEmailMock.response.success.message}
-        mockResendSuccessMessage={verifyEmailMock.response.resendSuccess.message}
+        verifySuccessMessage={verifyEmailMock.response.success.message}
+        resendSuccessMessage={verifyEmailMock.response.resendSuccess.message}
+        invalidTokenMessage={verifyEmailMock.response.error.message}
       />
     </AuthCard>
   );

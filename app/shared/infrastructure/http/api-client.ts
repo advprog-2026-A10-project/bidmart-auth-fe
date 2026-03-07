@@ -1,6 +1,7 @@
 import { NetworkError } from "~/shared/domain/errors/network-error";
 import { NotFoundError } from "~/shared/domain/errors/not-found-error";
 import { ValidationError } from "~/shared/domain/errors/validation-error";
+import { GoneError } from "~/shared/domain/errors/gone-error";
 import type { RequestOptions } from "./types";
 import { TokenExpiredError } from "~/shared/domain/errors/token-expired-error";
 
@@ -38,6 +39,8 @@ async function parseErrorResponse(response: Response): Promise<never> {
     case 410:
       throw new TokenExpiredError(message);
       throw new NotFoundError("Resource");
+    case 410:
+      throw new GoneError(message);
     case 422:
       throw new ValidationError(message, fieldErrors);
     default:
