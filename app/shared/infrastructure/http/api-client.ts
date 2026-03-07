@@ -1,6 +1,7 @@
 import { NetworkError } from "~/shared/domain/errors/network-error";
 import { NotFoundError } from "~/shared/domain/errors/not-found-error";
 import { ValidationError } from "~/shared/domain/errors/validation-error";
+import { GoneError } from "~/shared/domain/errors/gone-error";
 import type { RequestOptions } from "./types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -35,6 +36,8 @@ async function parseErrorResponse(response: Response): Promise<never> {
   switch (response.status) {
     case 404:
       throw new NotFoundError("Resource");
+    case 410:
+      throw new GoneError(message);
     case 422:
       throw new ValidationError(message, fieldErrors);
     default:

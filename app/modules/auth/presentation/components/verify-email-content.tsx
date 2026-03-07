@@ -1,58 +1,39 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Link } from "react-router";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/shared/components/ui/form";
-import { Input } from "~/shared/components/ui/input";
 import { Button } from "~/shared/components/ui/button";
-import { useVerifyEmailMutation } from "../hooks/use-verify-email-mutation";
-import { useResendVerificationMutation } from "../hooks/use-resend-verification-mutation";
-
-const resendFormSchema = z.object({
-  email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
-});
-
-type ResendFormValues = z.infer<typeof resendFormSchema>;
+import { Input } from "~/shared/components/ui/input";
+import { useState } from "react";
 
 interface VerifyEmailContentProps {
   token?: string;
   email?: string;
+  verifySuccessMessage?: string;
+  resendSuccessMessage?: string;
+  invalidTokenMessage?: string;
 }
 
-/**
- * VerifyEmailContent — handles two states:
- * 1. Token present → auto-verify on mount, show spinner → success/error message.
- * 2. No token → show "Check your email" + resend form.
- */
-export function VerifyEmailContent({ token, email }: VerifyEmailContentProps) {
-  const verifyEmail = useVerifyEmailMutation();
-  const resendVerification = useResendVerificationMutation();
+export function VerifyEmailContent({
+  token,
+  email,
+  verifySuccessMessage = "Email verified.",
+  resendSuccessMessage = "Verification email sent.",
+  invalidTokenMessage = "Verification token is invalid or expired.",
+}: VerifyEmailContentProps) {
+  const [resendEmail, setResendEmail] = useState(email ?? "");
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
-  const form = useForm<ResendFormValues>({
-    resolver: zodResolver(resendFormSchema),
-    defaultValues: { email: email ?? "" },
-    mode: "onBlur",
-    reValidateMode: "onSubmit",
-  });
+  if (token) {
+    const isInvalidToken = token.trim().toLowerCase().includes("invalid");
 
-  useEffect(() => {
-    if (token) {
-      verifyEmail.mutate({ token });
-    }
-    // Intentionally only runs on mount when token is available
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  function handleResend(values: ResendFormValues) {
-    resendVerification.mutate({ email: values.email });
+    return (
+      <div className="flex flex-col items-center gap-4 py-4 text-center">
+        <p className="text-sm font-medium text-green-600">
+          {isInvalidToken ? invalidTokenMessage : verifySuccessMessage}
+        </p>
+        <Button asChild>
+          <Link to="/login">Continue to sign in</Link>
+        </Button>
+      </div>
+    );
   }
 
   // Token present — show verification status
@@ -97,45 +78,26 @@ export function VerifyEmailContent({ token, email }: VerifyEmailContentProps) {
     }
   }
 
-  // No token — show "check your inbox" + resend form
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground text-sm">
         We sent a verification link to your email. Click the link to activate your account.
       </p>
-
-      <div className="rounded-lg border p-4">
-        <p className="mb-4 text-sm font-medium">Didn&apos;t receive the email?</p>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleResend)} className="space-y-3" noValidate>
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email address</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              variant="outline"
-              className="w-full"
-              disabled={resendVerification.isPending}
-            >
-              {resendVerification.isPending ? "Sending..." : "Resend verification email"}
-            </Button>
-          </form>
-        </Form>
+      <p className="text-muted-foreground text-sm">
+        We sent a verification link to {email ?? "your email"}. Click the link to activate your
+        account.
+      </p>
+      <div className="space-y-2">
+        <label className="text-sm font-medium" htmlFor="verify-email-resend-input">
+          Email address
+        </label>
+        <Input
+          id="verify-email-resend-input"
+          type="email"
+          value={resendEmail}
+          onChange={(event) => setResendEmail(event.target.value)}
+          placeholder="you@example.com"
+        />
       </div>
 
       <p className="text-muted-foreground text-center text-sm">

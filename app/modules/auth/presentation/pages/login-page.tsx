@@ -1,23 +1,20 @@
 import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { LoginForm } from "../components/login-form";
-import { useLoginMutation } from "../hooks/use-login-mutation";
 import type { LoginFormValues } from "../components/login-form";
+import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const login = useLoginMutation();
+  const loginMock = AUTH_PAGE_MOCK_PAYLOADS.login;
 
-  function handleSubmit(values: LoginFormValues) {
-    login.mutate(
-      { email: values.email, password: values.password },
-      { onSuccess: () => navigate("/posts") },
-    );
+  function handleSubmit(_values: LoginFormValues) {
+    void navigate(loginMock.response.success.emailVerified ? "/posts" : "/verify-email");
   }
 
   return (
-    <AuthCard title="Sign in" description="Enter your credentials to access your account.">
-      <LoginForm onSubmit={handleSubmit} isSubmitting={login.isPending} />
+    <AuthCard title="Sign in" description="Placeholder login using mock request/response payloads.">
+      <LoginForm onSubmit={handleSubmit} isSubmitting={false} />
     </AuthCard>
   );
 }
