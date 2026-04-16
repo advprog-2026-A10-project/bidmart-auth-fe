@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
@@ -20,8 +19,9 @@ import {
   FormMessage,
 } from "~/shared/components/ui/form";
 import { Input } from "~/shared/components/ui/input";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
 import { useState } from "react";
+import { useSetupMfaEmailMutation } from "../hooks/use-setup-mfa-email-mutation";
+import { useVerifyMfaEmailMutation } from "../hooks/use-verify-mfa-email-mutation";
 
 const emailVerifySchema = z.object({
   code: z.string().min(1, "Code is required."),
@@ -32,8 +32,8 @@ type EmailVerifyFormValues = z.infer<typeof emailVerifySchema>;
 export default function MfaEmailSetupPage() {
   const navigate = useNavigate();
   const [hasSentCode, setHasSentCode] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
+  const setupMfaEmail = useSetupMfaEmailMutation();
+  const verifyMfaEmail = useVerifyMfaEmailMutation();
 
   const form = useForm<EmailVerifyFormValues>({
     resolver: zodResolver(emailVerifySchema),
@@ -44,30 +44,14 @@ export default function MfaEmailSetupPage() {
     },
   });
 
-  function onSubmit(values: EmailVerifyFormValues) {
-    setIsVerifying(true);
-    const request = {
-      ...SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.request.verify,
-      code: values.code,
-    };
-    void request;
-
-    if (values.code !== SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.request.verify.code) {
-      toast.error("Invalid code. Please try again.");
-      setIsVerifying(false);
-      return;
-    }
-
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.verify.message);
-    setIsVerifying(false);
+  async function onSubmit(values: EmailVerifyFormValues) {
+    await verifyMfaEmail.mutateAsync({ code: values.code });
     void navigate("/settings/security/mfa");
   }
 
-  function handleSendCode() {
-    setIsSending(true);
+  async function handleSendCode() {
+    await setupMfaEmail.mutateAsync();
     setHasSentCode(true);
-    toast.info(SETTINGS_PAGE_MOCK_PAYLOADS.mfaEmail.response.setup.message);
-    setIsSending(false);
   }
 
   return (
@@ -90,8 +74,12 @@ export default function MfaEmailSetupPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {!hasSentCode ? (
-            <Button onClick={handleSendCode} disabled={isSending} className="w-full sm:w-auto">
-              {isSending ? "Sending..." : "Send Verification Code"}
+            <Button
+              onClick={handleSendCode}
+              disabled={setupMfaEmail.isPending}
+              className="w-full sm:w-auto"
+            >
+              {setupMfaEmail.isPending ? "Sending..." : "Send Verification Code"}
             </Button>
           ) : (
             <div className="space-y-6">
@@ -125,8 +113,8 @@ export default function MfaEmailSetupPage() {
                     <Button asChild variant="ghost" className="w-full">
                       <Link to="/settings/security/mfa">Cancel</Link>
                     </Button>
-                    <Button type="submit" className="w-full" disabled={isVerifying}>
-                      {isVerifying ? "Verifying..." : "Verify"}
+                    <Button type="submit" className="w-full" disabled={verifyMfaEmail.isPending}>
+                      {verifyMfaEmail.isPending ? "Verifying..." : "Verify"}
                     </Button>
                   </div>
                 </form>
@@ -137,7 +125,7 @@ export default function MfaEmailSetupPage() {
                   type="button"
                   onClick={handleSendCode}
                   className="hover:text-foreground underline"
-                  disabled={isSending}
+                  disabled={setupMfaEmail.isPending}
                 >
                   Resend
                 </button>

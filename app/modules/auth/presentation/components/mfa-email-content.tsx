@@ -1,63 +1,52 @@
-import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router";
 import { OtpInput } from "~/shared/components/ui/otp-input";
 import { Button } from "~/shared/components/ui/button";
 
 interface MfaEmailContentProps {
-  ticket: string;
-  onSuccess: () => void;
-  onExpired: () => void;
-  verifyCode?: string;
-  resendMessage?: string;
-  expiredMessage?: string;
+  onVerify: (code: string) => void | Promise<void>;
+  onResend: () => void | Promise<void>;
+  isSubmitting?: boolean;
+  isSending?: boolean;
 }
 
 export function MfaEmailContent({
-  ticket,
-  onSuccess,
-  onExpired,
-  verifyCode = "123456",
-  resendMessage = "MFA code sent.",
-  expiredMessage = "The MFA code has expired. Please try again.",
+  onVerify,
+  onResend,
+  isSubmitting = false,
+  isSending = false,
 }: MfaEmailContentProps) {
-  const codeLength = verifyCode.length;
+  const codeLength = 6;
   const [code, setCode] = useState("");
   const [resendCount, setResendCount] = useState(0);
 
-  function handleCodeChange(val: string) {
-    const sanitized = val.replace(/\D/g, "").slice(0, codeLength);
+  function handleCodeChange(value: string) {
+    const sanitized = value.replace(/\D/g, "").slice(0, codeLength);
     setCode(sanitized);
     if (sanitized.length === codeLength) {
-      if (sanitized === "000000") {
-        toast.error(expiredMessage);
-        onExpired();
-        return;
-      }
-      if (sanitized !== verifyCode) {
-        toast.error("Invalid MFA code.");
-        return;
-      }
-      toast.success("MFA verification successful.");
-      onSuccess();
+      void onVerify(sanitized);
     }
   }
 
-  function handleResend() {
+  async function handleResend() {
     setCode("");
+    await onResend();
     setResendCount((count) => count + 1);
-    toast.info(resendMessage);
   }
 
   return (
     <div className="space-y-4">
-      <p className="text-muted-foreground text-center text-xs">Ticket: {ticket}</p>
       <div className="flex justify-center">
-        <OtpInput value={code} onChange={handleCodeChange} length={codeLength} />
+        <OtpInput
+          value={code}
+          onChange={handleCodeChange}
+          length={codeLength}
+          disabled={isSubmitting}
+        />
       </div>
       <div className="text-center text-sm">
-        <Button type="button" variant="outline" size="sm" onClick={handleResend}>
-          Resend code
+        <Button type="button" variant="outline" size="sm" onClick={handleResend} disabled={isSending}>
+          {isSending ? "Sending..." : "Resend code"}
         </Button>
         {resendCount > 0 ? (
           <p className="text-muted-foreground mt-2 text-xs">Code resent ({resendCount})</p>

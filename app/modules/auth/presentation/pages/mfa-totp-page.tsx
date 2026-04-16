@@ -1,14 +1,16 @@
 import { useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaTotpContent } from "../components/mfa-totp-content";
-import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
+import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
+import { clearMfaTicket, readMfaTicket } from "../mfa-ticket-storage";
+import { useVerifyMfaTotpMutation } from "../hooks/use-verify-mfa-totp-mutation";
 
 export function MfaTotpPage() {
-  const mfaTotpMock = AUTH_PAGE_MOCK_PAYLOADS.mfaTotp;
-  const [searchParams] = useSearchParams();
-  const ticket = searchParams.get("ticket") ?? mfaTotpMock.verifyRequest.ticket;
+  const ticketState = readMfaTicket();
+  const ticket = ticketState?.mfaType === "totp" ? ticketState.ticket : null;
   const navigate = useNavigate();
+  const verifyMfaTotp = useVerifyMfaTotpMutation();
 
   useEffect(() => {
     if (!ticket) {
@@ -17,27 +19,24 @@ export function MfaTotpPage() {
   }, [ticket, navigate]);
 
   if (!ticket) return null;
+  const mfaTicket = ticket;
 
-  function handleSuccess() {
-    void navigate("/posts");
-  }
-
-  function handleExpired() {
-    void navigate("/mfa/expired");
+  async function handleVerify(code: string) {
+    try {
+      await verifyMfaTotp.mutateAsync({ ticket: mfaTicket, code });
+      clearMfaTicket();
+      void navigate("/posts");
+    } catch (error) {
+      if (error instanceof MfaExpiredError) {
+        clearMfaTicket();
+        void navigate("/auth/mfa/expired");
+      }
+    }
   }
 
   return (
-    <AuthCard
-      title="Authenticator app"
-      description="Placeholder MFA-TOTP using mock request/response payloads."
-    >
-      <MfaTotpContent
-        ticket={ticket}
-        onSuccess={handleSuccess}
-        onExpired={handleExpired}
-        verifyCode={mfaTotpMock.verifyRequest.code}
-        expiredMessage={mfaTotpMock.response.expiredError.message}
-      />
+    <AuthCard title="Authenticator app" description="Enter the code from your authenticator app.">
+      <MfaTotpContent onVerify={handleVerify} isSubmitting={verifyMfaTotp.isPending} />
     </AuthCard>
   );
 }

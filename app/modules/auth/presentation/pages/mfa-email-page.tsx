@@ -1,43 +1,55 @@
 import { useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaEmailContent } from "../components/mfa-email-content";
-import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
+import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
+import { clearMfaTicket, readMfaTicket } from "../mfa-ticket-storage";
+import { useSendMfaEmailMutation } from "../hooks/use-send-mfa-email-mutation";
+import { useVerifyMfaEmailMutation } from "../hooks/use-verify-mfa-email-mutation";
 
 export function MfaEmailPage() {
-  const mfaEmailMock = AUTH_PAGE_MOCK_PAYLOADS.mfaEmail;
-  const [searchParams] = useSearchParams();
-  const ticket = searchParams.get("ticket") ?? mfaEmailMock.verifyRequest.ticket;
+  const ticketState = readMfaTicket();
+  const ticket = ticketState?.mfaType === "email" ? ticketState.ticket : null;
   const navigate = useNavigate();
+  const sendMfaEmail = useSendMfaEmailMutation();
+  const verifyMfaEmail = useVerifyMfaEmailMutation();
 
   useEffect(() => {
     if (!ticket) {
       navigate("/login", { replace: true });
+      return;
     }
-  }, [ticket, navigate]);
+
+    void sendMfaEmail.mutateAsync({ ticket });
+  }, [sendMfaEmail, ticket, navigate]);
 
   if (!ticket) return null;
+  const mfaTicket = ticket;
 
-  function handleSuccess() {
-    void navigate("/posts");
+  async function handleVerify(code: string) {
+    try {
+      await verifyMfaEmail.mutateAsync({ ticket: mfaTicket, code });
+      clearMfaTicket();
+      void navigate("/posts");
+    } catch (error) {
+      if (error instanceof MfaExpiredError) {
+        clearMfaTicket();
+        void navigate("/auth/mfa/expired");
+      }
+    }
   }
 
-  function handleExpired() {
-    void navigate("/mfa/expired");
+  async function handleResend() {
+    await sendMfaEmail.mutateAsync({ ticket: mfaTicket });
   }
 
   return (
-    <AuthCard
-      title="Email verification"
-      description="Placeholder MFA-email using mock payload contract."
-    >
+    <AuthCard title="Email verification" description="Enter the code sent to your email.">
       <MfaEmailContent
-        ticket={ticket}
-        onSuccess={handleSuccess}
-        onExpired={handleExpired}
-        verifyCode={mfaEmailMock.verifyRequest.code}
-        resendMessage={mfaEmailMock.response.sendCodeSuccess.message}
-        expiredMessage={mfaEmailMock.response.expiredError.message}
+        onVerify={handleVerify}
+        onResend={handleResend}
+        isSubmitting={verifyMfaEmail.isPending}
+        isSending={sendMfaEmail.isPending}
       />
     </AuthCard>
   );

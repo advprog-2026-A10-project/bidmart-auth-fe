@@ -2,27 +2,30 @@ import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { LoginForm } from "../components/login-form";
 import type { LoginFormValues } from "../components/login-form";
-import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useLoginMutation } from "../hooks/use-login-mutation";
+import { MfaRequiredError } from "~/modules/auth/domain/errors/auth-errors";
+import { storeMfaTicket } from "../mfa-ticket-storage";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const loginMock = AUTH_PAGE_MOCK_PAYLOADS.login;
+  const loginMutation = useLoginMutation();
 
-  function handleSubmit(values: LoginFormValues) {
-    const request = { ...loginMock.request, email: values.email, password: values.password };
-    void request;
-
-    if (loginMock.response.success.emailVerified) {
+  async function handleSubmit(values: LoginFormValues) {
+    try {
+      await loginMutation.mutateAsync({ email: values.email, password: values.password });
       void navigate("/posts");
-      return;
+    } catch (error) {
+      if (error instanceof MfaRequiredError) {
+        const state = { ticket: error.ticket, mfaType: error.mfaType };
+        storeMfaTicket(state);
+        void navigate("/auth/mfa", { state });
+      }
     }
-
-    void navigate("/check-email");
   }
 
   return (
     <AuthCard title="Sign in" description="Enter your credentials to access your account.">
-      <LoginForm onSubmit={handleSubmit} isSubmitting={false} />
+      <LoginForm onSubmit={handleSubmit} isSubmitting={loginMutation.isPending} />
     </AuthCard>
   );
 }

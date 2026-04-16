@@ -1,5 +1,9 @@
-import { VerifyEmailTokenPage } from "~/modules/auth/presentation/pages/verify-email-token-page";
+import { redirect } from "react-router";
 
-export default function AuthVerifyEmailRoute() {
-  return <VerifyEmailTokenPage />;
+export function loader() {
+  return redirect("/auth/verify-email");
+}
+
+export default function VerifyEmailRedirectRoute() {
+  return null;
 }

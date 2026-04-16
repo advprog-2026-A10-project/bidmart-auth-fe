@@ -1,5 +1,9 @@
-import { VerifyEmailSuccessPage } from "~/modules/auth/presentation/pages/verify-email-success-page";
+import { redirect } from "react-router";
 
-export default function VerifyEmailSuccessRoute() {
-  return <VerifyEmailSuccessPage />;
+export function loader() {
+  return redirect("/auth/verify-email/success");
+}
+
+export default function VerifyEmailSuccessRedirectRoute() {
+  return null;
 }

@@ -1,18 +1,31 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { VerifyEmailContent } from "../components/verify-email-content";
 
+const resendMutateAsyncMock = vi.fn();
+
+vi.mock("../hooks/use-resend-verification-mutation", () => ({
+  useResendVerificationMutation: () => ({
+    mutateAsync: resendMutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
 function renderWithProviders(ui: React.ReactElement) {
   return render(<MemoryRouter>{ui}</MemoryRouter>);
 }
 
-describe("VerifyEmailContent mock payload contract", () => {
-  it("shows resend request payload preview with email input", () => {
+describe("VerifyEmailContent", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("shows resend email input without exposing payload previews", () => {
     renderWithProviders(<VerifyEmailContent email="alice@example.com" />);
 
-    expect(screen.getByText(/request payload preview/i)).toBeInTheDocument();
+    expect(screen.queryByText(/request payload preview/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/email address/i)).toHaveValue("alice@example.com");
     expect(screen.getByRole("button", { name: /resend verification email/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back to sign in/i })).toHaveAttribute(
@@ -21,26 +34,24 @@ describe("VerifyEmailContent mock payload contract", () => {
     );
   });
 
-  it("shows verify response success message when token is valid", () => {
-    renderWithProviders(
-      <VerifyEmailContent token="mock-token" verifySuccessMessage="Email verified." />,
-    );
-
-    expect(screen.getByText(/email verified\./i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /continue to sign in/i })).toHaveAttribute(
-      "href",
-      "/login",
-    );
-  });
-
-  it("shows resend response success message after click", async () => {
+  it("calls the resend hook and shows the response message after click", async () => {
     const user = userEvent.setup();
-    renderWithProviders(
-      <VerifyEmailContent email="foo@bar.com" resendSuccessMessage="Verification email sent." />,
-    );
+    resendMutateAsyncMock.mockResolvedValue({ message: "Verification email sent." });
+    renderWithProviders(<VerifyEmailContent email="foo@bar.com" />);
 
     await user.click(screen.getByRole("button", { name: /resend verification email/i }));
 
-    expect(screen.getByText(/verification email sent\./i)).toBeInTheDocument();
+    expect(resendMutateAsyncMock).toHaveBeenCalledWith({ email: "foo@bar.com" });
+    expect(await screen.findByText(/verification email sent\./i)).toBeInTheDocument();
+  });
+
+  it("shows validation feedback before calling resend without an email", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<VerifyEmailContent />);
+
+    await user.click(screen.getByRole("button", { name: /resend verification email/i }));
+
+    expect(resendMutateAsyncMock).not.toHaveBeenCalled();
+    expect(screen.getByText(/email is required/i)).toBeInTheDocument();
   });
 });

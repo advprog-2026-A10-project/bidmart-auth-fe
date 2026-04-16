@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { Link } from "react-router";
 import { Button } from "~/shared/components/ui/button";
 import {
@@ -8,16 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "~/shared/components/ui/card";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
-import { useState } from "react";
+import { useGetMfaStatusQuery } from "../hooks/use-get-mfa-status-query";
 
 export function MfaPage() {
-  const [data, setData] = useState(SETTINGS_PAGE_MOCK_PAYLOADS.security.response.mfaStatus);
-
-  function handleDisableMfa() {
-    setData({ mfaEnabled: false, mfaType: null });
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
-  }
+  const { data, isLoading, isError, error } = useGetMfaStatusQuery();
 
   return (
     <div className="space-y-6">
@@ -25,7 +18,15 @@ export function MfaPage() {
         <h2 className="text-2xl font-bold tracking-tight">Multi-Factor Authentication</h2>
         <p className="text-muted-foreground">Add an extra layer of security to your account.</p>
       </div>
-      {!data.mfaEnabled ? (
+
+      {isLoading ? <p className="text-muted-foreground text-sm">Loading MFA status...</p> : null}
+      {isError ? (
+        <p className="text-destructive text-sm">
+          {error instanceof Error ? error.message : "Unable to load MFA status."}
+        </p>
+      ) : null}
+
+      {!isLoading && !isError && !data?.mfaEnabled ? (
         <Card>
           <CardHeader>
             <CardTitle>MFA not enabled</CardTitle>
@@ -42,7 +43,9 @@ export function MfaPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : (
+      ) : null}
+
+      {!isLoading && !isError && data?.mfaEnabled ? (
         <Card>
           <CardHeader>
             <CardTitle>MFA Enabled</CardTitle>
@@ -55,12 +58,9 @@ export function MfaPage() {
             <Button asChild variant="outline" size="sm">
               <Link to="/settings/security/mfa/disable">Go to disable flow</Link>
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleDisableMfa}>
-              Disable now (mock)
-            </Button>
           </CardContent>
         </Card>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,9 @@
-import { MfaExpiredPage } from "~/modules/auth/presentation/pages/mfa-expired-page";
+import { redirect } from "react-router";
 
-export default function MfaExpiredRoute() {
-  return <MfaExpiredPage />;
+export function loader() {
+  return redirect("/auth/mfa/expired");
+}
+
+export default function MfaExpiredRedirectRoute() {
+  return null;
 }

@@ -1,5 +1,9 @@
-import { MfaTotpPage } from "~/modules/auth/presentation/pages/mfa-totp-page";
+import { redirect } from "react-router";
 
-export default function MfaTotpRoute() {
-  return <MfaTotpPage />;
+export function loader() {
+  return redirect("/auth/mfa/totp");
+}
+
+export default function MfaTotpRedirectRoute() {
+  return null;
 }

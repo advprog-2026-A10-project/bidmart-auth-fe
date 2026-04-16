@@ -1,5 +1,9 @@
-import { VerifyEmailInvalidPage } from "~/modules/auth/presentation/pages/verify-email-invalid-page";
+import { redirect } from "react-router";
 
-export default function VerifyEmailInvalidRoute() {
-  return <VerifyEmailInvalidPage />;
+export function loader() {
+  return redirect("/auth/verify-email/invalid");
+}
+
+export default function VerifyEmailInvalidRedirectRoute() {
+  return null;
 }

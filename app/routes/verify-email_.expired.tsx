@@ -1,5 +1,9 @@
-import { VerifyEmailExpiredPage } from "~/modules/auth/presentation/pages/verify-email-expired-page";
+import { redirect } from "react-router";
 
-export default function VerifyEmailExpiredRoute() {
-  return <VerifyEmailExpiredPage />;
+export function loader() {
+  return redirect("/auth/verify-email/expired");
+}
+
+export default function VerifyEmailExpiredRedirectRoute() {
+  return null;
 }

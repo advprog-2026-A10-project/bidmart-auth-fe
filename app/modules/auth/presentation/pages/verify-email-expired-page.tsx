@@ -22,7 +22,7 @@ export function VerifyEmailExpiredPage() {
 
         <div className="w-full space-y-3">
           <Button asChild className="w-full">
-            <Link to="/check-email">Request a new link</Link>
+            <Link to="/auth/check-email">Request a new link</Link>
           </Button>
 
           <p className="text-muted-foreground text-center text-sm">

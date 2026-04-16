@@ -1,40 +1,30 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
-import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
+import { readMfaTicket } from "../mfa-ticket-storage";
 
 export function MfaPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const mfaMock = AUTH_PAGE_MOCK_PAYLOADS.mfa;
 
   useEffect(() => {
-    const state =
-      (location.state as {
-        ticket?: string;
-        mfaType?: "totp" | "email";
-      } | null) ?? mfaMock.routeInput;
+    const state = readMfaTicket(location.state);
 
-    if (!state || !state.ticket || !state.mfaType) {
+    if (!state) {
       navigate("/login", { replace: true });
       return;
     }
 
     if (state.mfaType === "totp") {
-      navigate(`/mfa/totp?ticket=${state.ticket}`, { replace: true });
-    } else if (state.mfaType === "email") {
-      navigate(`/mfa/email?ticket=${state.ticket}`, { replace: true });
-    } else {
-      navigate("/login", { replace: true });
+      navigate("/auth/mfa/totp", { replace: true });
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    navigate("/auth/mfa/email", { replace: true });
+  }, [location.state, navigate]);
 
   return (
-    <AuthCard
-      title="Verifying..."
-      description="Placeholder MFA route switch with mock payload input."
-    >
+    <AuthCard title="Verifying..." description="Selecting your multi-factor authentication method.">
       <div className="flex flex-col items-center gap-4 py-4 text-center">
         <div
           className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent"

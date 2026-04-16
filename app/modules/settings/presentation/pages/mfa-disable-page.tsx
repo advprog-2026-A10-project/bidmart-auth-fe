@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import {
   Card,
@@ -9,22 +8,14 @@ import {
 } from "~/shared/components/ui/card";
 import { DisableMfaForm } from "../components/disable-mfa-form";
 import type { DisableMfaFormValues } from "../components/disable-mfa-form";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
-import { useState } from "react";
+import { useDisableMfaMutation } from "../hooks/use-disable-mfa-mutation";
 
 export function MfaDisablePage() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const disableMfa = useDisableMfaMutation();
 
-  function handleSubmit(values: DisableMfaFormValues) {
-    setIsSubmitting(true);
-    const request = {
-      ...SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.request.disable,
-      password: values.password,
-    };
-    void request;
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaDisable.response.success.message);
-    setIsSubmitting(false);
+  async function handleSubmit(values: DisableMfaFormValues) {
+    await disableMfa.mutateAsync({ password: values.password });
     void navigate("/settings/security/mfa");
   }
 
@@ -44,7 +35,7 @@ export function MfaDisablePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DisableMfaForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          <DisableMfaForm onSubmit={handleSubmit} isSubmitting={disableMfa.isPending} />
         </CardContent>
       </Card>
     </div>

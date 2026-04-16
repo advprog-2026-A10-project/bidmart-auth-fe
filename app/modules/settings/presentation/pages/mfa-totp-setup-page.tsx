@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
@@ -20,8 +19,9 @@ import {
   FormMessage,
 } from "~/shared/components/ui/form";
 import { Input } from "~/shared/components/ui/input";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
 import { useState } from "react";
+import { useSetupMfaTotpMutation } from "../hooks/use-setup-mfa-totp-mutation";
+import { useVerifyMfaTotpMutation } from "../hooks/use-verify-mfa-totp-mutation";
 
 const totpVerifySchema = z.object({
   code: z.string().length(6, "Code must be 6 digits.").regex(/^\d+$/, "Code must be numeric."),
@@ -31,12 +31,12 @@ type TotpVerifyFormValues = z.infer<typeof totpVerifySchema>;
 
 export default function MfaTotpSetupPage() {
   const navigate = useNavigate();
+  const setupMfaTotp = useSetupMfaTotpMutation();
+  const verifyMfaTotp = useVerifyMfaTotpMutation();
   const [setupData, setSetupData] = useState<{
     secret: string;
     qrCodeUrl: string;
   } | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   const form = useForm<TotpVerifyFormValues>({
     resolver: zodResolver(totpVerifySchema),
@@ -47,29 +47,14 @@ export default function MfaTotpSetupPage() {
     },
   });
 
-  function onSubmit(values: TotpVerifyFormValues) {
-    setIsVerifying(true);
-    const request = {
-      ...SETTINGS_PAGE_MOCK_PAYLOADS.mfaTotp.request.verify,
-      code: values.code,
-    };
-    void request;
-
-    if (values.code !== SETTINGS_PAGE_MOCK_PAYLOADS.mfaTotp.request.verify.code) {
-      toast.error("Invalid code. Please try again.");
-      setIsVerifying(false);
-      return;
-    }
-
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.mfaTotp.response.verify.message);
-    setIsVerifying(false);
+  async function onSubmit(values: TotpVerifyFormValues) {
+    await verifyMfaTotp.mutateAsync({ code: values.code });
     void navigate("/settings/security/mfa");
   }
 
-  function handleStartSetup() {
-    setIsGenerating(true);
-    setSetupData(SETTINGS_PAGE_MOCK_PAYLOADS.mfaTotp.response.setup);
-    setIsGenerating(false);
+  async function handleStartSetup() {
+    const result = await setupMfaTotp.mutateAsync();
+    setSetupData(result);
   }
 
   return (
@@ -92,19 +77,23 @@ export default function MfaTotpSetupPage() {
         </CardHeader>
         <CardContent>
           {!setupData ? (
-            <Button onClick={handleStartSetup} disabled={isGenerating} className="w-full sm:w-auto">
-              {isGenerating ? "Generating..." : "Start Setup"}
+            <Button
+              onClick={handleStartSetup}
+              disabled={setupMfaTotp.isPending}
+              className="w-full sm:w-auto"
+            >
+              {setupMfaTotp.isPending ? "Generating..." : "Start Setup"}
             </Button>
           ) : (
             <div className="space-y-6">
               <div className="bg-muted/50 flex flex-col items-center gap-4 rounded-lg border p-4">
-                {setupData.qrCodeUrl && (
+                {setupData.qrCodeUrl ? (
                   <img
                     src={setupData.qrCodeUrl}
                     alt="QR Code"
                     className="h-48 w-48 rounded-md bg-white p-2"
                   />
-                )}
+                ) : null}
                 <div className="space-y-1 text-center">
                   <p className="text-muted-foreground text-sm">
                     Unable to scan? Enter this code manually:
@@ -146,8 +135,8 @@ export default function MfaTotpSetupPage() {
                     <Button asChild variant="ghost" className="w-full">
                       <Link to="/settings/security/mfa">Cancel</Link>
                     </Button>
-                    <Button type="submit" className="w-full" disabled={isVerifying}>
-                      {isVerifying ? "Verifying..." : "Verify"}
+                    <Button type="submit" className="w-full" disabled={verifyMfaTotp.isPending}>
+                      {verifyMfaTotp.isPending ? "Verifying..." : "Verify"}
                     </Button>
                   </div>
                 </form>

@@ -1,0 +1,223 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router";
+import type * as ReactRouter from "react-router";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MfaRequiredError, MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
+import { LoginPage } from "../pages/login-page";
+import { MfaEmailPage } from "../pages/mfa-email-page";
+import { MfaPage } from "../pages/mfa-page";
+import { MfaTotpPage } from "../pages/mfa-totp-page";
+import { VerifyEmailTokenPage } from "../pages/verify-email-token-page";
+
+const navigateMock = vi.fn();
+const searchParamsMock = vi.fn(() => new URLSearchParams());
+const locationStateMock = vi.fn<() => unknown>(() => null);
+
+const loginMutateAsyncMock = vi.fn();
+const verifyEmailMutateAsyncMock = vi.fn();
+const verifyTotpMutateAsyncMock = vi.fn();
+const sendMfaEmailMutateAsyncMock = vi.fn();
+const verifyMfaEmailMutateAsyncMock = vi.fn();
+
+vi.mock("react-router", async () => {
+  const actual = await vi.importActual<typeof ReactRouter>("react-router");
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+    useSearchParams: () => [searchParamsMock(), vi.fn()],
+    useLocation: () => ({ state: locationStateMock() }),
+  };
+});
+
+vi.mock("../hooks/use-login-mutation", () => ({
+  useLoginMutation: () => ({
+    mutateAsync: loginMutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/use-verify-email-mutation", () => ({
+  useVerifyEmailMutation: () => ({
+    mutateAsync: verifyEmailMutateAsyncMock,
+  }),
+}));
+
+vi.mock("../hooks/use-verify-mfa-totp-mutation", () => ({
+  useVerifyMfaTotpMutation: () => ({
+    mutateAsync: verifyTotpMutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/use-send-mfa-email-mutation", () => ({
+  useSendMfaEmailMutation: () => ({
+    mutateAsync: sendMfaEmailMutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/use-verify-mfa-email-mutation", () => ({
+  useVerifyMfaEmailMutation: () => ({
+    mutateAsync: verifyMfaEmailMutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
+function renderWithProviders(ui: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+async function typeOtp(user: ReturnType<typeof userEvent.setup>, code: string) {
+  for (let index = 0; index < code.length; index += 1) {
+    await user.type(screen.getByLabelText(`Digit ${index + 1}`), code[index]);
+  }
+}
+
+describe("auth page flows", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sessionStorage.clear();
+    searchParamsMock.mockReturnValue(new URLSearchParams());
+    locationStateMock.mockReturnValue(null);
+  });
+
+  it("redirects normal login success to posts through the login hook", async () => {
+    const user = userEvent.setup();
+    loginMutateAsyncMock.mockResolvedValue({
+      id: "user-1",
+      name: "Alice",
+      email: "alice@example.com",
+      emailVerified: true,
+    });
+
+    renderWithProviders(<LoginPage />);
+    await user.type(screen.getByLabelText(/email/i), "alice@example.com");
+    await user.type(screen.getByLabelText("Password"), "secret123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(loginMutateAsyncMock).toHaveBeenCalledWith({
+        email: "alice@example.com",
+        password: "secret123",
+      });
+      expect(navigateMock).toHaveBeenCalledWith("/posts");
+    });
+  });
+
+  it("stores an MFA ticket out of the URL and redirects MFA-required login to /auth/mfa", async () => {
+    const user = userEvent.setup();
+    loginMutateAsyncMock.mockRejectedValue(new MfaRequiredError("ticket-123", "totp"));
+
+    renderWithProviders(<LoginPage />);
+    await user.type(screen.getByLabelText(/email/i), "alice@example.com");
+    await user.type(screen.getByLabelText("Password"), "secret123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith("/auth/mfa", {
+        state: { ticket: "ticket-123", mfaType: "totp" },
+      });
+    });
+    expect(sessionStorage.getItem("bidmart:mfa-ticket")).toContain("ticket-123");
+  });
+
+  it("verifies email token and redirects to the /auth success route", async () => {
+    searchParamsMock.mockReturnValue(new URLSearchParams("token=valid-token"));
+    verifyEmailMutateAsyncMock.mockResolvedValue({ message: "Email verified." });
+
+    renderWithProviders(<VerifyEmailTokenPage />);
+
+    await waitFor(() => {
+      expect(verifyEmailMutateAsyncMock).toHaveBeenCalledWith({ token: "valid-token" });
+      expect(navigateMock).toHaveBeenCalledWith("/auth/verify-email/success", { replace: true });
+    });
+  });
+
+  it("routes expired and invalid verify-email errors to /auth result routes", async () => {
+    searchParamsMock.mockReturnValue(new URLSearchParams("token=expired-token"));
+    verifyEmailMutateAsyncMock.mockRejectedValueOnce(new MfaExpiredError());
+
+    renderWithProviders(<VerifyEmailTokenPage />);
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith("/auth/verify-email/expired", { replace: true });
+    });
+
+    vi.clearAllMocks();
+    searchParamsMock.mockReturnValue(new URLSearchParams("token=invalid-token"));
+    verifyEmailMutateAsyncMock.mockRejectedValueOnce(new Error("invalid"));
+
+    renderWithProviders(<VerifyEmailTokenPage />);
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith("/auth/verify-email/invalid", { replace: true });
+    });
+  });
+
+  it("routes MFA gate using state without adding the ticket to the URL", async () => {
+    locationStateMock.mockReturnValue({ ticket: "ticket-123", mfaType: "email" });
+
+    renderWithProviders(<MfaPage />);
+
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith("/auth/mfa/email", { replace: true });
+    });
+    expect(navigateMock.mock.calls.flat().join(" ")).not.toContain("ticket-123");
+  });
+
+  it("verifies TOTP MFA with a ticket from safe storage", async () => {
+    const user = userEvent.setup();
+    sessionStorage.setItem(
+      "bidmart:mfa-ticket",
+      JSON.stringify({ ticket: "ticket-123", mfaType: "totp", expiresAt: Date.now() + 30_000 }),
+    );
+    verifyTotpMutateAsyncMock.mockResolvedValue({ id: "user-1" });
+
+    renderWithProviders(<MfaTotpPage />);
+    await typeOtp(user, "123456");
+
+    await waitFor(() => {
+      expect(verifyTotpMutateAsyncMock).toHaveBeenCalledWith({
+        ticket: "ticket-123",
+        code: "123456",
+      });
+      expect(navigateMock).toHaveBeenCalledWith("/posts");
+    });
+  });
+
+  it("sends and verifies email MFA with a ticket from safe storage", async () => {
+    const user = userEvent.setup();
+    sessionStorage.setItem(
+      "bidmart:mfa-ticket",
+      JSON.stringify({ ticket: "ticket-123", mfaType: "email", expiresAt: Date.now() + 30_000 }),
+    );
+    sendMfaEmailMutateAsyncMock.mockResolvedValue({ message: "sent" });
+    verifyMfaEmailMutateAsyncMock.mockResolvedValue({ id: "user-1" });
+
+    renderWithProviders(<MfaEmailPage />);
+    await waitFor(() => {
+      expect(sendMfaEmailMutateAsyncMock).toHaveBeenCalledWith({ ticket: "ticket-123" });
+    });
+    await typeOtp(user, "654321");
+
+    await waitFor(() => {
+      expect(verifyMfaEmailMutateAsyncMock).toHaveBeenCalledWith({
+        ticket: "ticket-123",
+        code: "654321",
+      });
+      expect(navigateMock).toHaveBeenCalledWith("/posts");
+    });
+  });
+});

@@ -1,5 +1,9 @@
-import { MfaPage } from "~/modules/auth/presentation/pages/mfa-page";
+import { redirect } from "react-router";
 
-export default function MfaRoute() {
-  return <MfaPage />;
+export function loader() {
+  return redirect("/auth/mfa");
+}
+
+export default function MfaRedirectRoute() {
+  return null;
 }

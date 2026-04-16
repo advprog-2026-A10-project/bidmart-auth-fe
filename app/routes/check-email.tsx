@@ -1,5 +1,9 @@
-import { CheckEmailPage } from "~/modules/auth/presentation/pages/check-email-page";
+import { redirect } from "react-router";
 
-export default function CheckEmailRoute() {
-  return <CheckEmailPage />;
+export function loader() {
+  return redirect("/auth/check-email");
+}
+
+export default function CheckEmailRedirectRoute() {
+  return null;
 }

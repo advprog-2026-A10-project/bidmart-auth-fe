@@ -1,5 +1,9 @@
-import { MfaEmailPage } from "~/modules/auth/presentation/pages/mfa-email-page";
+import { redirect } from "react-router";
 
-export default function MfaEmailRoute() {
-  return <MfaEmailPage />;
+export function loader() {
+  return redirect("/auth/mfa/email");
+}
+
+export default function MfaEmailRedirectRoute() {
+  return null;
 }

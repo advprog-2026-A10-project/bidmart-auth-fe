@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { Mail } from "lucide-react";
 import { Button } from "~/shared/components/ui/button";
-import { AUTH_PAGE_MOCK_PAYLOADS } from "../pages/constant";
+import { useResendVerificationMutation } from "../hooks/use-resend-verification-mutation";
 
 const COOLDOWN_SECONDS = 30;
 
@@ -13,7 +13,7 @@ const COOLDOWN_SECONDS = 30;
  * with a 30-second cooldown to prevent spam.
  */
 export function CheckEmailContent({ email }: { email?: string }) {
-  const checkEmailMock = AUTH_PAGE_MOCK_PAYLOADS.checkEmail;
+  const resendVerification = useResendVerificationMutation();
   const [cooldown, setCooldown] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
@@ -46,15 +46,14 @@ export function CheckEmailContent({ email }: { email?: string }) {
     };
   }, [cooldown]);
 
-  function handleResend() {
+  async function handleResend() {
     if (!email || cooldown > 0) return;
-    const request = { ...checkEmailMock.resendRequest, email };
-    void request;
-    setResendMessage(checkEmailMock.response.resendSuccess.message);
+    const result = await resendVerification.mutateAsync({ email });
+    setResendMessage(result.message);
     setCooldown(COOLDOWN_SECONDS);
   }
 
-  const isDisabled = cooldown > 0 || !email;
+  const isDisabled = cooldown > 0 || !email || resendVerification.isPending;
 
   return (
     <div className="flex flex-col items-center gap-6 py-2 text-center">
