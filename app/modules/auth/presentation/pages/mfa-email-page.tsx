@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaEmailContent } from "../components/mfa-email-content";
@@ -13,6 +13,8 @@ export function MfaEmailPage() {
   const navigate = useNavigate();
   const sendMfaEmail = useSendMfaEmailMutation();
   const verifyMfaEmail = useVerifyMfaEmailMutation();
+  const initialSendTicketRef = useRef<string | null>(null);
+  const sendEmail = sendMfaEmail.mutateAsync;
 
   useEffect(() => {
     if (!ticket) {
@@ -20,8 +22,10 @@ export function MfaEmailPage() {
       return;
     }
 
-    void sendMfaEmail.mutateAsync({ ticket });
-  }, [sendMfaEmail, ticket, navigate]);
+    if (initialSendTicketRef.current === ticket) return;
+    initialSendTicketRef.current = ticket;
+    void sendEmail({ ticket });
+  }, [sendEmail, ticket, navigate]);
 
   if (!ticket) return null;
   const mfaTicket = ticket;

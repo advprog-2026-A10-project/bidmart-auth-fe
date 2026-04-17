@@ -11,6 +11,8 @@ import { useGetMfaStatusQuery } from "../hooks/use-get-mfa-status-query";
 
 export function MfaPage() {
   const { data, isLoading, isError, error } = useGetMfaStatusQuery();
+  const mfaEnabled = Boolean(data?.emailEnabled || data?.totpEnabled);
+  const enabledMethod = data?.totpEnabled ? "an authenticator app" : "email";
 
   return (
     <div className="space-y-6">
@@ -26,7 +28,7 @@ export function MfaPage() {
         </p>
       ) : null}
 
-      {!isLoading && !isError && !data?.mfaEnabled ? (
+      {!isLoading && !isError && !mfaEnabled ? (
         <Card>
           <CardHeader>
             <CardTitle>MFA not enabled</CardTitle>
@@ -45,13 +47,12 @@ export function MfaPage() {
         </Card>
       ) : null}
 
-      {!isLoading && !isError && data?.mfaEnabled ? (
+      {!isLoading && !isError && mfaEnabled ? (
         <Card>
           <CardHeader>
             <CardTitle>MFA Enabled</CardTitle>
             <CardDescription>
-              Your account is protected with{" "}
-              {data.mfaType === "totp" ? "an authenticator app" : "email"} MFA.
+              Your account is protected with {enabledMethod} MFA.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

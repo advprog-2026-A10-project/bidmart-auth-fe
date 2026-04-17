@@ -9,7 +9,7 @@ import { ResetPasswordUseCase } from "~/modules/auth/application/use-cases/reset
 import { VerifyMfaTotpUseCase } from "~/modules/auth/application/use-cases/verify-mfa-totp.use-case";
 import { SendMfaEmailUseCase } from "~/modules/auth/application/use-cases/send-mfa-email.use-case";
 import { VerifyMfaEmailUseCase } from "~/modules/auth/application/use-cases/verify-mfa-email.use-case";
-import type { UserDTO } from "~/modules/auth/application/dtos/user.dto";
+export { clearCurrentUser, getCurrentUser, setCurrentUser } from "../current-user-state";
 
 /**
  * AuthUseCaseFactory — wires up the dependency graph for the auth module.
@@ -56,19 +56,4 @@ export function getAuthUseCases(): AuthUseCases {
     _authUseCases = createAuthUseCases();
   }
   return _authUseCases;
-}
-
-// In-memory auth session (cleared on logout; persisted server-side via httpOnly cookie)
-let _currentUser: UserDTO | null = null;
-
-export function setCurrentUser(user: UserDTO): void {
-  _currentUser = user;
-}
-
-export function getCurrentUser(): UserDTO | null {
-  return _currentUser;
-}
-
-export function clearCurrentUser(): void {
-  _currentUser = null;
 }

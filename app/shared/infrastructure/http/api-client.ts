@@ -3,8 +3,7 @@ import { NotFoundError } from "~/shared/domain/errors/not-found-error";
 import { ValidationError } from "~/shared/domain/errors/validation-error";
 import { GoneError } from "~/shared/domain/errors/gone-error";
 import type { RequestOptions } from "./types";
-import { SESSION_COOKIE_NAME } from "~/shared/infrastructure/auth";
-import type { AuthSession } from "~/shared/infrastructure/auth";
+import { getAccessToken } from "~/shared/infrastructure/auth";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -23,36 +22,6 @@ function buildUrl(path: string, params?: RequestOptions["params"]): string {
     });
   }
   return url.toString();
-}
-
-function getSessionCookieValue(): string | null {
-  if (typeof document === "undefined") return null;
-  const cookie = document.cookie
-    .split(";")
-    .map((entry) => entry.trim())
-    .find((entry) => entry.startsWith(`${SESSION_COOKIE_NAME}=`));
-  return cookie ? cookie.slice(SESSION_COOKIE_NAME.length + 1) : null;
-}
-
-function getBearerTokenFromSessionCookie(): string | undefined {
-  const sessionValue = getSessionCookieValue();
-  if (!sessionValue) return undefined;
-
-  try {
-    const decoded = JSON.parse(atob(decodeURIComponent(sessionValue))) as Partial<AuthSession>;
-    if (
-      typeof decoded.accessToken === "string" &&
-      decoded.accessToken.length > 0 &&
-      typeof decoded.expiresAt === "number" &&
-      decoded.expiresAt > Date.now()
-    ) {
-      return decoded.accessToken;
-    }
-  } catch {
-    return undefined;
-  }
-
-  return undefined;
 }
 
 async function parseErrorResponse(response: Response): Promise<never> {
@@ -90,7 +59,7 @@ async function request<T>(
   const { params, body, headers, ...rest } = options ?? {};
 
   const url = buildUrl(path, params);
-  const bearerToken = getBearerTokenFromSessionCookie();
+  const bearerToken = getAccessToken();
 
   const response = await fetch(url, {
     method,
@@ -100,7 +69,7 @@ async function request<T>(
       ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
       ...headers,
     },
-    credentials: "include", // Send httpOnly cookies automatically
+    credentials: "same-origin",
     body: body !== undefined ? JSON.stringify(body) : undefined,
     ...rest,
   });

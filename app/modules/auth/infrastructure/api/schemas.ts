@@ -14,7 +14,7 @@ export const userApiSchema = z.object({
 
 export const loginApiSchema = z.object({
   user: userApiSchema,
-  accessToken: z.string(),
+  accessToken: z.string().min(1),
 });
 
 export const registerApiSchema = z.object({
@@ -40,9 +40,9 @@ export const mfaRequiredApiSchema = z.object({
 
 // Normal login response (no MFA)
 export const loginSuccessApiSchema = z.object({
-  requiresMfa: z.literal(false).optional(),
+  requiresMfa: z.literal(false),
   user: userApiSchema,
-  accessToken: z.string(),
+  accessToken: z.string().min(1),
 });
 
 // Union: login can return either
@@ -51,7 +51,7 @@ export const loginResponseApiSchema = z.union([mfaRequiredApiSchema, loginSucces
 // MFA verify response (totp or email)
 export const mfaVerifyApiSchema = z.object({
   user: userApiSchema,
-  accessToken: z.string(),
+  accessToken: z.string().min(1),
 });
 
 export type MfaRequiredApiResponse = z.infer<typeof mfaRequiredApiSchema>;

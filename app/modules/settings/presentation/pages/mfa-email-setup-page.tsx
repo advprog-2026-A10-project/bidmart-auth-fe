@@ -32,6 +32,7 @@ type EmailVerifyFormValues = z.infer<typeof emailVerifySchema>;
 export default function MfaEmailSetupPage() {
   const navigate = useNavigate();
   const [hasSentCode, setHasSentCode] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const setupMfaEmail = useSetupMfaEmailMutation();
   const verifyMfaEmail = useVerifyMfaEmailMutation();
 
@@ -45,12 +46,12 @@ export default function MfaEmailSetupPage() {
   });
 
   async function onSubmit(values: EmailVerifyFormValues) {
-    await verifyMfaEmail.mutateAsync({ code: values.code });
+    await verifyMfaEmail.mutateAsync({ code: values.code, currentPassword });
     void navigate("/settings/security/mfa");
   }
 
   async function handleSendCode() {
-    await setupMfaEmail.mutateAsync();
+    await setupMfaEmail.mutateAsync({ currentPassword });
     setHasSentCode(true);
   }
 
@@ -74,13 +75,27 @@ export default function MfaEmailSetupPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {!hasSentCode ? (
-            <Button
-              onClick={handleSendCode}
-              disabled={setupMfaEmail.isPending}
-              className="w-full sm:w-auto"
-            >
-              {setupMfaEmail.isPending ? "Sending..." : "Send Verification Code"}
-            </Button>
+            <div className="max-w-sm space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="email-current-password">
+                  Current Password
+                </label>
+                <Input
+                  id="email-current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                />
+              </div>
+              <Button
+                onClick={handleSendCode}
+                disabled={setupMfaEmail.isPending || currentPassword.trim() === ""}
+                className="w-full sm:w-auto"
+              >
+                {setupMfaEmail.isPending ? "Sending..." : "Send Verification Code"}
+              </Button>
+            </div>
           ) : (
             <div className="space-y-6">
               <Form {...form}>

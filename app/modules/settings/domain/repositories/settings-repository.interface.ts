@@ -1,4 +1,12 @@
 import type { UserProfile, Session, MfaStatus, NotificationPreferences } from "../entities";
+import type {
+  DisableMfaDTO,
+  SetupMfaEmailDTO,
+  SetupMfaTotpDTO,
+  SetupMfaTotpResultDTO,
+  VerifyMfaEmailDTO,
+  VerifyMfaTotpDTO,
+} from "~/modules/settings/application/dtos/settings.dto";
 
 export interface ISettingsRepository {
   getProfile(): Promise<UserProfile>;
@@ -15,11 +23,11 @@ export interface ISettingsRepository {
     newPassword: string;
   }): Promise<{ message: string }>;
   getMfaStatus(): Promise<MfaStatus>;
-  setupMfaTotp(): Promise<{ qrCodeUrl: string; secret: string }>;
-  verifyMfaTotp(data: { code: string }): Promise<{ message: string }>;
-  setupMfaEmail(): Promise<{ message: string }>;
-  verifyMfaEmail(data: { code: string }): Promise<{ message: string }>;
-  disableMfa(data: { password: string }): Promise<{ message: string }>;
+  setupMfaTotp(data: SetupMfaTotpDTO): Promise<SetupMfaTotpResultDTO>;
+  verifyMfaTotp(data: VerifyMfaTotpDTO): Promise<{ message: string }>;
+  setupMfaEmail(data: SetupMfaEmailDTO): Promise<{ message: string }>;
+  verifyMfaEmail(data: VerifyMfaEmailDTO): Promise<{ message: string }>;
+  disableMfa(data: DisableMfaDTO): Promise<{ message: string }>;
   getNotificationPreferences(): Promise<NotificationPreferences>;
   updateNotificationPreferences(
     data: Partial<NotificationPreferences>,

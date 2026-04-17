@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-This document defines the backend REST contract for the entire project, covering both the authentication and user settings modules. All endpoints use `application/json` for both request and response bodies. While `/auth/*` endpoints handle session creation and verification, all `/settings/*` endpoints require an authenticated user context (session or cookie).
+This document defines the backend REST contract for the entire project, covering both the authentication and user settings modules. All endpoints use `application/json` for both request and response bodies. While `/auth/*` endpoints handle login and verification, all `/settings/*` endpoints require an authenticated user context from an `Authorization: Bearer <accessToken>` header.
 
 ## 2. Shared Transport Rules
 
@@ -36,7 +36,6 @@ The frontend validates all responses with Zod schemas. Non-2xx responses must re
 | POST   | `/auth/register`            | `RegisterDTO`           | `registerApiSchema`              | Returns user and success message    |
 | POST   | `/auth/verify-email`        | `VerifyEmailDTO`        | `messageApiSchema`               | Verifies account via token          |
 | POST   | `/auth/resend-verification` | `ResendVerificationDTO` | `messageApiSchema`               | Re-triggers verification email      |
-| POST   | `/auth/logout`              | none                    | void/204                         | Ends user session                   |
 | POST   | `/auth/forgot-password`     | `ForgotPasswordDTO`     | `messageApiSchema`               | Sends password reset link           |
 | POST   | `/auth/reset-password`      | `ResetPasswordDTO`      | `messageApiSchema`               | Updates password via token          |
 | POST   | `/auth/mfa/send-email`      | `SendMfaEmailDTO`       | `messageApiSchema`               | Sends MFA code to registered email  |
@@ -93,7 +92,7 @@ Success (Normal):
     "email": "alice@example.com",
     "emailVerified": true
   },
-  "accessToken": "jwt-or-session-token"
+  "accessToken": "jwt-access-token"
 }
 ```
 
@@ -142,7 +141,7 @@ Success:
     "email": "alice@example.com",
     "emailVerified": true
   },
-  "accessToken": "jwt-or-session-token"
+  "accessToken": "jwt-access-token"
 }
 ```
 
@@ -156,11 +155,11 @@ Success:
 | DELETE | `/settings/security/sessions/:sessionId` | none                                                | `{ message }`             |
 | DELETE | `/settings/security/sessions`            | none                                                | `{ message }`             |
 | POST   | `/settings/security/password`            | `ChangePasswordDTO`                                 | `{ message }`             |
-| GET    | `/settings/security/mfa`                 | none                                                | `{ mfaEnabled, mfaType }` |
-| POST   | `/settings/security/mfa/totp/setup`      | none                                                | `{ qrCodeUrl, secret }`   |
-| POST   | `/settings/security/mfa/totp/verify`     | `VerifyMfaTotpDTO`                                  | `{ message }`             |
-| POST   | `/settings/security/mfa/email/setup`     | none                                                | `{ message }`             |
-| POST   | `/settings/security/mfa/email/verify`    | `VerifyMfaEmailDTO`                                 | `{ message }`             |
+| GET    | `/settings/security/mfa`                 | none                                                | `{ emailEnabled, totpEnabled }` |
+| POST   | `/settings/security/mfa/totp/setup`      | `{ currentPassword }`                               | `{ setupTicket, secret, otpauthUrl }` |
+| POST   | `/settings/security/mfa/totp/verify`     | `SettingsVerifyMfaTotpDTO`                          | `{ message }`             |
+| POST   | `/settings/security/mfa/email/setup`     | `{ currentPassword }`                               | `{ message }`             |
+| POST   | `/settings/security/mfa/email/verify`    | `SettingsVerifyMfaEmailDTO`                         | `{ message }`             |
 | POST   | `/settings/security/mfa/disable`         | `DisableMfaDTO`                                     | `{ message }`             |
 | GET    | `/settings/notifications`                | none                                                | `{ preferences }`         |
 | PUT    | `/settings/notifications`                | `{ preferences: Partial<NotificationPreferences> }` | `{ message }`             |
@@ -211,7 +210,8 @@ Success:
 ```json
 {
   "secret": "JBSWY3DPEHPK3PXP",
-  "qrCodeUrl": "https://..."
+  "setupTicket": "setup-ticket",
+  "otpauthUrl": "otpauth://totp/Bidmart:alice@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Bidmart"
 }
 ```
 
@@ -266,9 +266,15 @@ type ChangePasswordDTO = {
   newPassword: string;
 };
 
-type VerifyMfaTotpDTO = { code: string };
-type VerifyMfaEmailDTO = { code: string };
-type DisableMfaDTO = { password: string };
+type SetupMfaTotpDTO = { currentPassword: string };
+type SettingsVerifyMfaTotpDTO = {
+  setupTicket: string;
+  code: string;
+  currentPassword: string;
+};
+type SetupMfaEmailDTO = { currentPassword: string };
+type SettingsVerifyMfaEmailDTO = { code: string; currentPassword: string };
+type DisableMfaDTO = { currentPassword: string };
 type RevokeSessionDTO = { sessionId: string };
 
 type UpdateNotificationPreferencesDTO = {
@@ -285,6 +291,7 @@ type UpdateNotificationPreferencesDTO = {
 
 - **User**: `{ id: string; name: string; email: string; emailVerified: boolean }`
 - **Message**: `{ message: string }`
+- **Authenticated requests**: send `Authorization: Bearer <accessToken>`. The frontend keeps this access token in module-scope memory only; it is not stored in cookies, `localStorage`, or `sessionStorage`.
 - **Login Response**:
   - MFA required: `{ requiresMfa: true; ticket: string; mfaType: "totp" | "email" }`
   - Success: `{ requiresMfa?: false; user: User; accessToken: string }`
@@ -294,8 +301,8 @@ type UpdateNotificationPreferencesDTO = {
 
 - **Profile User**: `{ id: string; name: string; email: string; address: string; postalCode: string }`
 - **Session**: `{ id: string; device: string; browser: string; os: string; ip: string; location: string; lastActive: string; isCurrent: boolean }`
-- **MFA Status**: `{ mfaEnabled: boolean; mfaType: "totp" | "email" | null }`
-- **TOTP Setup**: `{ qrCodeUrl: string; secret: string }`
+- **MFA Status**: `{ emailEnabled: boolean; totpEnabled: boolean }`
+- **TOTP Setup**: `{ setupTicket: string; secret: string; otpauthUrl: string }`
 - **Notification Preferences**: `{ emailNotifications: boolean; pushNotifications: boolean; marketingEmails: boolean; securityAlerts: boolean }`
 
 ## 7. Error Mapping
@@ -333,12 +340,12 @@ type UpdateNotificationPreferencesDTO = {
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
 | `/login`                             | `POST /auth/login`                                                                                                |
 | `/register`                          | `POST /auth/register`                                                                                             |
-| `/check-email`                       | `POST /auth/resend-verification`                                                                                  |
-| `/verify-email?token=...`            | `POST /auth/verify-email`                                                                                         |
+| `/auth/check-email`                  | `POST /auth/resend-verification`                                                                                  |
+| `/auth/verify-email?token=...`       | `POST /auth/verify-email`                                                                                         |
 | `/forgot-password`                   | `POST /auth/forgot-password`                                                                                      |
 | `/reset-password?token=...`          | `POST /auth/reset-password`                                                                                       |
-| `/mfa/totp`                          | `POST /auth/mfa/verify-totp`                                                                                      |
-| `/mfa/email`                         | `POST /auth/mfa/send-email`, `POST /auth/mfa/verify-email`                                                        |
+| `/auth/mfa/totp`                     | `POST /auth/mfa/verify-totp`                                                                                      |
+| `/auth/mfa/email`                    | `POST /auth/mfa/send-email`, `POST /auth/mfa/verify-email`                                                        |
 | `/settings/profile`                  | `GET /settings/profile`, `PUT /settings/profile`                                                                  |
 | `/settings/notifications`            | `GET /settings/notifications`, `PUT /settings/notifications`                                                      |
 | `/settings/security/password`        | `POST /settings/security/password`                                                                                |
@@ -358,5 +365,5 @@ type UpdateNotificationPreferencesDTO = {
 - [ ] Validation errors (`422`) include the `errors` object by field.
 - [ ] Required status codes are respected (`400`, `401`, `404`, `410`, `422`).
 - [ ] `PUT /settings/notifications` accepts the wrapped body `{ preferences: ... }`.
-- [ ] TOTP setup returns both `qrCodeUrl` and `secret`.
-- [ ] MFA status shape exactly matches (`mfaEnabled`, `mfaType`).
+- [ ] TOTP setup returns `setupTicket`, `secret`, and `otpauthUrl`.
+- [ ] MFA status shape exactly matches (`emailEnabled`, `totpEnabled`).

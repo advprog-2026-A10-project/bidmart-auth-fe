@@ -1,10 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { SetupMfaEmailDTO } from "~/modules/settings/application/dtos/settings.dto";
 import { getSettingsUseCases } from "~/modules/settings/infrastructure/factories/settings-repository.factory";
 
 export function useSetupMfaEmailMutation() {
   return useMutation({
-    mutationFn: () => getSettingsUseCases().setupMfaEmail.execute(),
+    mutationFn: (dto: SetupMfaEmailDTO) => getSettingsUseCases().setupMfaEmail.execute(dto),
     onSuccess: () => {
       toast.success("Verification email sent.");
     },

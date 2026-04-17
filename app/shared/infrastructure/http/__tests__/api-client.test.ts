@@ -1,15 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SESSION_COOKIE_NAME } from "~/shared/infrastructure/auth";
+import { clearAccessToken, setAccessToken } from "~/shared/infrastructure/auth";
 import { apiClient } from "../api-client";
 
 describe("apiClient", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    document.cookie = `${SESSION_COOKIE_NAME}=; Max-Age=0; path=/`;
+    clearAccessToken();
+    document.cookie = "auth_session=; Max-Age=0; path=/";
+    localStorage.clear();
+    sessionStorage.clear();
   });
 
-  it("keeps credentials included and attaches bearer token from AuthSession cookie", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
+  it("uses same-origin credentials and attaches bearer token only from volatile memory", async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
       new Response(JSON.stringify({ message: "ok" }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -24,16 +27,32 @@ describe("apiClient", () => {
         expiresAt: Date.now() + 60_000,
       }),
     );
-    document.cookie = `${SESSION_COOKIE_NAME}=${session}; path=/`;
+    document.cookie = `auth_session=${session}; path=/`;
+    localStorage.setItem("accessToken", "local-storage-token");
+    sessionStorage.setItem("accessToken", "session-storage-token");
 
     await apiClient.get<{ message: string }>("/settings/security/mfa");
 
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenLastCalledWith(
       expect.any(String),
       expect.objectContaining({
-        credentials: "include",
+        credentials: "same-origin",
+        headers: expect.not.objectContaining({
+          Authorization: expect.any(String),
+        }),
+      }),
+    );
+
+    setAccessToken("memory-token-123");
+
+    await apiClient.get<{ message: string }>("/settings/security/mfa");
+
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        credentials: "same-origin",
         headers: expect.objectContaining({
-          Authorization: "Bearer access-token-123",
+          Authorization: "Bearer memory-token-123",
         }),
       }),
     );

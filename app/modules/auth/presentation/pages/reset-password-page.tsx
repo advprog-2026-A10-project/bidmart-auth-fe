@@ -1,41 +1,51 @@
-import { useSearchParams, useNavigate, Link } from "react-router";
+import { useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { ResetPasswordForm, type ResetPasswordFormValues } from "../components/reset-password-form";
-import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useResetPasswordMutation } from "../hooks/use-reset-password-mutation";
+import {
+  InvalidResetTokenError,
+  MfaExpiredError,
+  TokenExpiredError,
+} from "~/modules/auth/domain/errors/auth-errors";
 
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const resetPasswordMock = AUTH_PAGE_MOCK_PAYLOADS.resetPassword;
-  const token = searchParams.get("token") ?? resetPasswordMock.request.token;
+  const resetPasswordMutation = useResetPasswordMutation();
+  const token = searchParams.get("token");
 
-  if (!token) {
-    return (
-      <AuthCard title="Error" description="No reset token found in mock request payload.">
-        <div className="text-center">
-          <Link
-            to="/forgot-password"
-            className="hover:text-primary text-sm font-medium underline underline-offset-4"
-          >
-            Request a new link
-          </Link>
-        </div>
-      </AuthCard>
-    );
-  }
+  useEffect(() => {
+    if (!token) {
+      void navigate("/reset-password/invalid", { replace: true });
+    }
+  }, [navigate, token]);
 
-  function handleSubmit(values: ResetPasswordFormValues) {
-    const request = { ...resetPasswordMock.request, token, password: values.password };
-    void request;
-    void navigate("/reset-password/success");
+  if (!token) return null;
+  const resetToken = token;
+
+  async function handleSubmit(values: ResetPasswordFormValues) {
+    try {
+      await resetPasswordMutation.mutateAsync({
+        token: resetToken,
+        password: values.password,
+      });
+      void navigate("/reset-password/success");
+    } catch (error) {
+      if (error instanceof TokenExpiredError || error instanceof MfaExpiredError) {
+        void navigate("/reset-password/expired");
+        return;
+      }
+
+      if (error instanceof InvalidResetTokenError || error instanceof Error) {
+        void navigate("/reset-password/invalid");
+      }
+    }
   }
 
   return (
-    <AuthCard
-      title="Reset password"
-      description="Placeholder reset-password using mock payload contract."
-    >
-      <ResetPasswordForm onSubmit={handleSubmit} isSubmitting={false} />
+    <AuthCard title="Reset password" description="Choose a new password for your account.">
+      <ResetPasswordForm onSubmit={handleSubmit} isSubmitting={resetPasswordMutation.isPending} />
     </AuthCard>
   );
 }

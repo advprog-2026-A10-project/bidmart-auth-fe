@@ -35,8 +35,10 @@ export default function MfaTotpSetupPage() {
   const verifyMfaTotp = useVerifyMfaTotpMutation();
   const [setupData, setSetupData] = useState<{
     secret: string;
-    qrCodeUrl: string;
+    setupTicket: string;
+    otpauthUrl: string;
   } | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
 
   const form = useForm<TotpVerifyFormValues>({
     resolver: zodResolver(totpVerifySchema),
@@ -48,12 +50,17 @@ export default function MfaTotpSetupPage() {
   });
 
   async function onSubmit(values: TotpVerifyFormValues) {
-    await verifyMfaTotp.mutateAsync({ code: values.code });
+    if (!setupData) return;
+    await verifyMfaTotp.mutateAsync({
+      setupTicket: setupData.setupTicket,
+      code: values.code,
+      currentPassword,
+    });
     void navigate("/settings/security/mfa");
   }
 
   async function handleStartSetup() {
-    const result = await setupMfaTotp.mutateAsync();
+    const result = await setupMfaTotp.mutateAsync({ currentPassword });
     setSetupData(result);
   }
 
@@ -77,23 +84,30 @@ export default function MfaTotpSetupPage() {
         </CardHeader>
         <CardContent>
           {!setupData ? (
-            <Button
-              onClick={handleStartSetup}
-              disabled={setupMfaTotp.isPending}
-              className="w-full sm:w-auto"
-            >
-              {setupMfaTotp.isPending ? "Generating..." : "Start Setup"}
-            </Button>
+            <div className="max-w-sm space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium" htmlFor="totp-current-password">
+                  Current Password
+                </label>
+                <Input
+                  id="totp-current-password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                />
+              </div>
+              <Button
+                onClick={handleStartSetup}
+                disabled={setupMfaTotp.isPending || currentPassword.trim() === ""}
+                className="w-full sm:w-auto"
+              >
+                {setupMfaTotp.isPending ? "Generating..." : "Start Setup"}
+              </Button>
+            </div>
           ) : (
             <div className="space-y-6">
               <div className="bg-muted/50 flex flex-col items-center gap-4 rounded-lg border p-4">
-                {setupData.qrCodeUrl ? (
-                  <img
-                    src={setupData.qrCodeUrl}
-                    alt="QR Code"
-                    className="h-48 w-48 rounded-md bg-white p-2"
-                  />
-                ) : null}
                 <div className="space-y-1 text-center">
                   <p className="text-muted-foreground text-sm">
                     Unable to scan? Enter this code manually:
@@ -102,6 +116,9 @@ export default function MfaTotpSetupPage() {
                     {setupData.secret}
                   </code>
                 </div>
+                <p className="text-muted-foreground max-w-full break-all text-center font-mono text-xs">
+                  {setupData.otpauthUrl}
+                </p>
               </div>
 
               <Form {...form}>

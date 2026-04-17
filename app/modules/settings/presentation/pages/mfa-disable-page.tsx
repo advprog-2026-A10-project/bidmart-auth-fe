@@ -15,7 +15,7 @@ export function MfaDisablePage() {
   const disableMfa = useDisableMfaMutation();
 
   async function handleSubmit(values: DisableMfaFormValues) {
-    await disableMfa.mutateAsync({ password: values.password });
+    await disableMfa.mutateAsync({ currentPassword: values.currentPassword });
     void navigate("/settings/security/mfa");
   }
 

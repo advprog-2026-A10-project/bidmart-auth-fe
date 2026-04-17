@@ -1,4 +1,4 @@
 export interface MfaStatus {
-  mfaEnabled: boolean;
-  mfaType: "totp" | "email" | null;
+  emailEnabled: boolean;
+  totpEnabled: boolean;
 }

@@ -1,12 +1,13 @@
 import { apiClient } from "~/shared/infrastructure/http/api-client";
+import { clearAccessToken, setAccessToken } from "~/shared/infrastructure/auth";
 import { GoneError } from "~/shared/domain/errors/gone-error";
 import type { User } from "~/modules/auth/domain/entities/user";
+import { clearCurrentUser, setCurrentUser } from "../current-user-state";
 import type {
   IAuthRepository,
   MfaLoginResult,
 } from "~/modules/auth/domain/repositories/auth-repository.interface";
 import {
-  MfaRequiredError,
   TokenExpiredError,
   InvalidResetTokenError,
   MfaExpiredError,
@@ -36,11 +37,16 @@ export class AuthApiRepository implements IAuthRepository {
     const validated = loginResponseApiSchema.parse(raw);
 
     if (validated.requiresMfa === true) {
-      // Throw a typed domain error so LoginUseCase can surface it to the hook
-      throw new MfaRequiredError(validated.ticket, validated.mfaType);
+      return {
+        requiresMfa: true,
+        ticket: validated.ticket,
+        mfaType: validated.mfaType,
+      };
     }
 
     const user = AuthApiMapper.toDomain(validated.user);
+    setAccessToken(validated.accessToken);
+    setCurrentUser(user);
     return { requiresMfa: false, user };
   }
 
@@ -72,7 +78,14 @@ export class AuthApiRepository implements IAuthRepository {
   }
 
   async logout(): Promise<void> {
-    await apiClient.post<void>(`${this.basePath}/logout`);
+    try {
+      await apiClient.post<void>(`${this.basePath}/logout`);
+    } catch {
+      // Local memory is the source of truth for Bearer auth state.
+    } finally {
+      clearAccessToken();
+      clearCurrentUser();
+    }
   }
 
   // ── Password reset ──────────────────────────────────────────────────────────
@@ -126,7 +139,10 @@ export class AuthApiRepository implements IAuthRepository {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/verify-totp`, data);
       const validated = mfaVerifyApiSchema.parse(raw);
-      return AuthApiMapper.toDomain(validated.user);
+      const user = AuthApiMapper.toDomain(validated.user);
+      setAccessToken(validated.accessToken);
+      setCurrentUser(user);
+      return user;
     } catch (error) {
       if (error instanceof GoneError) throw new MfaExpiredError();
       throw error;
@@ -154,7 +170,10 @@ export class AuthApiRepository implements IAuthRepository {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/verify-email`, data);
       const validated = mfaVerifyApiSchema.parse(raw);
-      return AuthApiMapper.toDomain(validated.user);
+      const user = AuthApiMapper.toDomain(validated.user);
+      setAccessToken(validated.accessToken);
+      setCurrentUser(user);
+      return user;
     } catch (error) {
       if (error instanceof GoneError) throw new MfaExpiredError();
       throw error;

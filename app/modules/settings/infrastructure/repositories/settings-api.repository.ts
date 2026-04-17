@@ -4,6 +4,14 @@ import type { UserProfile } from "~/modules/settings/domain/entities/user-profil
 import type { Session } from "~/modules/settings/domain/entities/session.entity";
 import type { MfaStatus } from "~/modules/settings/domain/entities/mfa-status.entity";
 import type { NotificationPreferences } from "~/modules/settings/domain/entities/notification-preferences.entity";
+import type {
+  DisableMfaDTO,
+  SetupMfaEmailDTO,
+  SetupMfaTotpDTO,
+  SetupMfaTotpResultDTO,
+  VerifyMfaEmailDTO,
+  VerifyMfaTotpDTO,
+} from "~/modules/settings/application/dtos/settings.dto";
 import {
   InvalidCurrentPasswordError,
   SessionNotFoundError,
@@ -92,13 +100,17 @@ export class SettingsApiRepository implements ISettingsRepository {
     return SettingsApiMapper.toMfaStatus(validated);
   }
 
-  async setupMfaTotp(): Promise<{ qrCodeUrl: string; secret: string }> {
-    const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/totp/setup`);
+  async setupMfaTotp(data: SetupMfaTotpDTO): Promise<SetupMfaTotpResultDTO> {
+    const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/totp/setup`, data);
     const validated = setupMfaTotpApiSchema.parse(raw);
-    return { qrCodeUrl: validated.qrCodeUrl, secret: validated.secret };
+    return {
+      setupTicket: validated.setupTicket,
+      secret: validated.secret,
+      otpauthUrl: validated.otpauthUrl,
+    };
   }
 
-  async verifyMfaTotp(data: { code: string }): Promise<{ message: string }> {
+  async verifyMfaTotp(data: VerifyMfaTotpDTO): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/totp/verify`, data);
       const validated = messageApiSchema.parse(raw);
@@ -111,13 +123,13 @@ export class SettingsApiRepository implements ISettingsRepository {
     }
   }
 
-  async setupMfaEmail(): Promise<{ message: string }> {
-    const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/email/setup`);
+  async setupMfaEmail(data: SetupMfaEmailDTO): Promise<{ message: string }> {
+    const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/email/setup`, data);
     const validated = messageApiSchema.parse(raw);
     return { message: validated.message };
   }
 
-  async verifyMfaEmail(data: { code: string }): Promise<{ message: string }> {
+  async verifyMfaEmail(data: VerifyMfaEmailDTO): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/email/verify`, data);
       const validated = messageApiSchema.parse(raw);
@@ -130,7 +142,7 @@ export class SettingsApiRepository implements ISettingsRepository {
     }
   }
 
-  async disableMfa(data: { password: string }): Promise<{ message: string }> {
+  async disableMfa(data: DisableMfaDTO): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/disable`, data);
       const validated = messageApiSchema.parse(raw);

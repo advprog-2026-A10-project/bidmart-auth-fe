@@ -2,6 +2,7 @@ import type {
   ChangePasswordDTO,
   DisableMfaDTO,
   RevokeSessionDTO,
+  SetupMfaTotpResultDTO,
   UpdateNotificationPreferencesDTO,
   UpdateProfileDTO,
   VerifyMfaEmailDTO,
@@ -12,7 +13,6 @@ import type { MfaStatus } from "~/modules/settings/domain/entities/mfa-status.en
 import type { Session } from "~/modules/settings/domain/entities/session.entity";
 
 type ActionSuccessResponse = { message: string };
-type SetupMfaTotpResponse = { secret: string; qrCodeUrl: string };
 
 export const SETTINGS_PAGE_MOCK_PAYLOADS = {
   profile: {
@@ -97,8 +97,8 @@ export const SETTINGS_PAGE_MOCK_PAYLOADS = {
   security: {
     response: {
       mfaStatus: {
-        mfaEnabled: false,
-        mfaType: null,
+        emailEnabled: false,
+        totpEnabled: false,
       } satisfies MfaStatus,
     },
   },
@@ -119,6 +119,7 @@ export const SETTINGS_PAGE_MOCK_PAYLOADS = {
     request: {
       verify: {
         code: "123456",
+        currentPassword: "currentPass123",
       } satisfies VerifyMfaEmailDTO,
     },
     response: {
@@ -133,15 +134,18 @@ export const SETTINGS_PAGE_MOCK_PAYLOADS = {
   mfaTotp: {
     request: {
       verify: {
+        setupTicket: "setup-ticket",
         code: "123456",
+        currentPassword: "currentPass123",
       } satisfies VerifyMfaTotpDTO,
     },
     response: {
       setup: {
+        setupTicket: "setup-ticket",
         secret: "JBSWY3DPEHPK3PXP",
-        qrCodeUrl:
-          "https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=otpauth://totp/Bidmart:alice@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Bidmart",
-      } satisfies SetupMfaTotpResponse,
+        otpauthUrl:
+          "otpauth://totp/Bidmart:alice@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Bidmart",
+      } satisfies SetupMfaTotpResultDTO,
       verify: {
         message: "Authenticator app MFA enabled.",
       } satisfies ActionSuccessResponse,
@@ -150,7 +154,7 @@ export const SETTINGS_PAGE_MOCK_PAYLOADS = {
   mfaDisable: {
     request: {
       disable: {
-        password: "currentPass123",
+        currentPassword: "currentPass123",
       } satisfies DisableMfaDTO,
     },
     response: {

@@ -10,15 +10,32 @@ export type ChangePasswordDTO = {
 };
 
 export type VerifyMfaTotpDTO = {
+  setupTicket: string;
   code: string;
+  currentPassword: string;
+};
+
+export type SetupMfaTotpDTO = {
+  currentPassword: string;
+};
+
+export type SetupMfaTotpResultDTO = {
+  setupTicket: string;
+  secret: string;
+  otpauthUrl: string;
+};
+
+export type SetupMfaEmailDTO = {
+  currentPassword: string;
 };
 
 export type VerifyMfaEmailDTO = {
   code: string;
+  currentPassword: string;
 };
 
 export type DisableMfaDTO = {
-  password: string;
+  currentPassword: string;
 };
 
 export type RevokeSessionDTO = {

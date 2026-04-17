@@ -84,7 +84,7 @@ describe("settings MFA pages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getMfaStatusMock.mockReturnValue({
-      data: { mfaEnabled: false, mfaType: null },
+      data: { emailEnabled: false, totpEnabled: false },
       isLoading: false,
       isError: false,
       error: null,
@@ -93,7 +93,7 @@ describe("settings MFA pages", () => {
 
   it("renders MFA status from the status hook", () => {
     getMfaStatusMock.mockReturnValue({
-      data: { mfaEnabled: true, mfaType: "totp" },
+      data: { emailEnabled: false, totpEnabled: true },
       isLoading: false,
       isError: false,
       error: null,
@@ -107,10 +107,15 @@ describe("settings MFA pages", () => {
 
   it("generates TOTP setup through the setup hook and verifies through the verify hook", async () => {
     const user = userEvent.setup();
-    setupTotpMock.mockResolvedValue({ qrCodeUrl: "https://example.test/qr.png", secret: "SECRET" });
+    setupTotpMock.mockResolvedValue({
+      setupTicket: "setup-ticket",
+      secret: "SECRET",
+      otpauthUrl: "otpauth://totp/BidMart:alice@example.com?secret=SECRET&issuer=BidMart",
+    });
     verifyTotpMock.mockResolvedValue({ message: "enabled" });
 
     renderWithProviders(<MfaTotpSetupPage />);
+    await user.type(screen.getByLabelText(/current password/i), "currentPass123");
     await user.click(screen.getByRole("button", { name: /start setup/i }));
     expect(await screen.findByText("SECRET")).toBeInTheDocument();
 
@@ -118,7 +123,12 @@ describe("settings MFA pages", () => {
     await user.click(screen.getByRole("button", { name: /^verify$/i }));
 
     await waitFor(() => {
-      expect(verifyTotpMock).toHaveBeenCalledWith({ code: "123456" });
+      expect(setupTotpMock).toHaveBeenCalledWith({ currentPassword: "currentPass123" });
+      expect(verifyTotpMock).toHaveBeenCalledWith({
+        setupTicket: "setup-ticket",
+        code: "123456",
+        currentPassword: "currentPass123",
+      });
       expect(navigateMock).toHaveBeenCalledWith("/settings/security/mfa");
     });
   });
@@ -129,14 +139,20 @@ describe("settings MFA pages", () => {
     verifyEmailMock.mockResolvedValue({ message: "enabled" });
 
     renderWithProviders(<MfaEmailSetupPage />);
+    await user.type(screen.getByLabelText(/current password/i), "currentPass123");
     await user.click(screen.getByRole("button", { name: /send verification code/i }));
-    await waitFor(() => expect(setupEmailMock).toHaveBeenCalledOnce());
+    await waitFor(() =>
+      expect(setupEmailMock).toHaveBeenCalledWith({ currentPassword: "currentPass123" }),
+    );
 
     await user.type(screen.getByLabelText(/verification code/i), "123456");
     await user.click(screen.getByRole("button", { name: /^verify$/i }));
 
     await waitFor(() => {
-      expect(verifyEmailMock).toHaveBeenCalledWith({ code: "123456" });
+      expect(verifyEmailMock).toHaveBeenCalledWith({
+        code: "123456",
+        currentPassword: "currentPass123",
+      });
       expect(navigateMock).toHaveBeenCalledWith("/settings/security/mfa");
     });
   });
@@ -150,7 +166,7 @@ describe("settings MFA pages", () => {
     await user.click(screen.getByRole("button", { name: /disable mfa/i }));
 
     await waitFor(() => {
-      expect(disableMfaMock).toHaveBeenCalledWith({ password: "currentPass123" });
+      expect(disableMfaMock).toHaveBeenCalledWith({ currentPassword: "currentPass123" });
       expect(navigateMock).toHaveBeenCalledWith("/settings/security/mfa");
     });
   });

@@ -28,13 +28,38 @@ describe("API schema contracts", () => {
         accessToken: "jwt",
       }),
     ).toMatchObject({ accessToken: "jwt" });
-    expect(getMfaStatusApiSchema.parse({ mfaEnabled: true, mfaType: "totp" })).toMatchObject({
-      mfaEnabled: true,
-      mfaType: "totp",
+    expect(getMfaStatusApiSchema.parse({ emailEnabled: false, totpEnabled: true })).toMatchObject({
+      emailEnabled: false,
+      totpEnabled: true,
     });
-    expect(setupMfaTotpApiSchema.parse({ qrCodeUrl: "https://example.test/qr", secret: "SECRET" })).toMatchObject({
+    expect(
+      setupMfaTotpApiSchema.parse({
+        setupTicket: "setup-ticket",
+        secret: "SECRET",
+        otpauthUrl: "otpauth://totp/BidMart:alice@example.com?secret=SECRET&issuer=BidMart",
+      }),
+    ).toMatchObject({
+      setupTicket: "setup-ticket",
       secret: "SECRET",
+      otpauthUrl: expect.stringContaining("otpauth://"),
     });
     expect(messageApiSchema.parse({ message: "ok" })).toEqual({ message: "ok" });
+  });
+
+  it("rejects login and MFA responses without a usable access token", () => {
+    expect(() =>
+      loginResponseApiSchema.parse({
+        requiresMfa: false,
+        user: { id: "user-1", name: "Alice", email: "alice@example.com", emailVerified: true },
+        accessToken: "",
+      }),
+    ).toThrow();
+
+    expect(() =>
+      mfaVerifyApiSchema.parse({
+        user: { id: "user-1", name: "Alice", email: "alice@example.com", emailVerified: true },
+        accessToken: "",
+      }),
+    ).toThrow();
   });
 });

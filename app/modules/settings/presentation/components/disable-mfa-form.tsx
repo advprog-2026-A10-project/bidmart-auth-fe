@@ -13,7 +13,7 @@ import { Input } from "~/shared/components/ui/input";
 import { Button } from "~/shared/components/ui/button";
 
 const disableMfaFormSchema = z.object({
-  password: z.string().min(1, "Password is required."),
+  currentPassword: z.string().min(1, "Password is required."),
 });
 
 export type DisableMfaFormValues = z.infer<typeof disableMfaFormSchema>;
@@ -26,7 +26,7 @@ interface DisableMfaFormProps {
 export function DisableMfaForm({ onSubmit, isSubmitting = false }: DisableMfaFormProps) {
   const form = useForm<DisableMfaFormValues>({
     resolver: zodResolver(disableMfaFormSchema),
-    defaultValues: { password: "" },
+    defaultValues: { currentPassword: "" },
     mode: "onBlur",
     reValidateMode: "onSubmit",
   });
@@ -36,7 +36,7 @@ export function DisableMfaForm({ onSubmit, isSubmitting = false }: DisableMfaFor
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <FormField
           control={form.control}
-          name="password"
+          name="currentPassword"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Current Password</FormLabel>

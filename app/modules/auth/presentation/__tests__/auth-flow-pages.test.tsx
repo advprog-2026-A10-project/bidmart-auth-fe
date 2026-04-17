@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router";
@@ -10,6 +10,8 @@ import { LoginPage } from "../pages/login-page";
 import { MfaEmailPage } from "../pages/mfa-email-page";
 import { MfaPage } from "../pages/mfa-page";
 import { MfaTotpPage } from "../pages/mfa-totp-page";
+import { ForgotPasswordPage } from "../pages/forgot-password-page";
+import { ResetPasswordPage } from "../pages/reset-password-page";
 import { VerifyEmailTokenPage } from "../pages/verify-email-token-page";
 
 const navigateMock = vi.fn();
@@ -21,6 +23,8 @@ const verifyEmailMutateAsyncMock = vi.fn();
 const verifyTotpMutateAsyncMock = vi.fn();
 const sendMfaEmailMutateAsyncMock = vi.fn();
 const verifyMfaEmailMutateAsyncMock = vi.fn();
+const forgotPasswordMutateAsyncMock = vi.fn();
+const resetPasswordMutateAsyncMock = vi.fn();
 
 vi.mock("react-router", async () => {
   const actual = await vi.importActual<typeof ReactRouter>("react-router");
@@ -66,6 +70,20 @@ vi.mock("../hooks/use-verify-mfa-email-mutation", () => ({
   }),
 }));
 
+vi.mock("../hooks/use-forgot-password-mutation", () => ({
+  useForgotPasswordMutation: () => ({
+    mutateAsync: forgotPasswordMutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
+vi.mock("../hooks/use-reset-password-mutation", () => ({
+  useResetPasswordMutation: () => ({
+    mutateAsync: resetPasswordMutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
 function renderWithProviders(ui: ReactElement) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -82,9 +100,16 @@ function renderWithProviders(ui: ReactElement) {
 }
 
 async function typeOtp(user: ReturnType<typeof userEvent.setup>, code: string) {
+  void user;
   for (let index = 0; index < code.length; index += 1) {
-    await user.type(screen.getByLabelText(`Digit ${index + 1}`), code[index]);
+    fireEvent.change(screen.getByLabelText(`Digit ${index + 1}`), {
+      target: { value: code[index] },
+    });
   }
+}
+
+function fillField(label: RegExp | string, value: string) {
+  fireEvent.change(screen.getByLabelText(label), { target: { value } });
 }
 
 describe("auth page flows", () => {
@@ -105,8 +130,8 @@ describe("auth page flows", () => {
     });
 
     renderWithProviders(<LoginPage />);
-    await user.type(screen.getByLabelText(/email/i), "alice@example.com");
-    await user.type(screen.getByLabelText("Password"), "secret123");
+    fillField(/email/i, "alice@example.com");
+    fillField("Password", "secret123");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => {
@@ -123,8 +148,8 @@ describe("auth page flows", () => {
     loginMutateAsyncMock.mockRejectedValue(new MfaRequiredError("ticket-123", "totp"));
 
     renderWithProviders(<LoginPage />);
-    await user.type(screen.getByLabelText(/email/i), "alice@example.com");
-    await user.type(screen.getByLabelText("Password"), "secret123");
+    fillField(/email/i, "alice@example.com");
+    fillField("Password", "secret123");
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => {
@@ -163,6 +188,65 @@ describe("auth page flows", () => {
     renderWithProviders(<VerifyEmailTokenPage />);
     await waitFor(() => {
       expect(navigateMock).toHaveBeenCalledWith("/auth/verify-email/invalid", { replace: true });
+    });
+  });
+
+  it("submits forgot password through the backend mutation and routes to sent page", async () => {
+    const user = userEvent.setup();
+    forgotPasswordMutateAsyncMock.mockResolvedValue({ message: "sent" });
+
+    renderWithProviders(<ForgotPasswordPage />);
+    fillField(/email/i, "reset@example.com");
+    await user.click(screen.getByRole("button", { name: /send reset link/i }));
+
+    await waitFor(() => {
+      expect(forgotPasswordMutateAsyncMock).toHaveBeenCalledWith({
+        email: "reset@example.com",
+      });
+      expect(navigateMock).toHaveBeenCalledWith("/forgot-password/sent");
+    });
+  });
+
+  it("submits reset password token and routes expired or invalid tokens to result pages", async () => {
+    const user = userEvent.setup();
+    searchParamsMock.mockReturnValue(new URLSearchParams("token=valid-reset-token"));
+    resetPasswordMutateAsyncMock.mockResolvedValue({ message: "reset" });
+
+    renderWithProviders(<ResetPasswordPage />);
+    fillField(/new password/i, "NewPassword123!");
+    fillField(/confirm password/i, "NewPassword123!");
+    await user.click(screen.getByRole("button", { name: /reset password/i }));
+
+    await waitFor(() => {
+      expect(resetPasswordMutateAsyncMock).toHaveBeenCalledWith({
+        token: "valid-reset-token",
+        password: "NewPassword123!",
+      });
+      expect(navigateMock).toHaveBeenCalledWith("/reset-password/success");
+    });
+
+    cleanup();
+    vi.clearAllMocks();
+    searchParamsMock.mockReturnValue(new URLSearchParams("token=expired-reset-token"));
+    resetPasswordMutateAsyncMock.mockRejectedValueOnce(new MfaExpiredError());
+    renderWithProviders(<ResetPasswordPage />);
+    fillField(/new password/i, "NewPassword123!");
+    fillField(/confirm password/i, "NewPassword123!");
+    await user.click(screen.getByRole("button", { name: /reset password/i }));
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith("/reset-password/expired");
+    });
+
+    cleanup();
+    vi.clearAllMocks();
+    searchParamsMock.mockReturnValue(new URLSearchParams("token=invalid-reset-token"));
+    resetPasswordMutateAsyncMock.mockRejectedValueOnce(new Error("invalid"));
+    renderWithProviders(<ResetPasswordPage />);
+    fillField(/new password/i, "NewPassword123!");
+    fillField(/confirm password/i, "NewPassword123!");
+    await user.click(screen.getByRole("button", { name: /reset password/i }));
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith("/reset-password/invalid");
     });
   });
 
@@ -219,5 +303,39 @@ describe("auth page flows", () => {
       });
       expect(navigateMock).toHaveBeenCalledWith("/posts");
     });
+  });
+
+  it("sends the initial email MFA code once across mutation state rerenders", async () => {
+    sessionStorage.setItem(
+      "bidmart:mfa-ticket",
+      JSON.stringify({ ticket: "ticket-123", mfaType: "email", expiresAt: Date.now() + 30_000 }),
+    );
+    sendMfaEmailMutateAsyncMock.mockResolvedValue({ message: "sent" });
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    function EmailGateTree() {
+      return (
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <MfaEmailPage />
+          </MemoryRouter>
+        </QueryClientProvider>
+      );
+    }
+
+    const { rerender } = render(<EmailGateTree />);
+    await waitFor(() => {
+      expect(sendMfaEmailMutateAsyncMock).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(<EmailGateTree />);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(sendMfaEmailMutateAsyncMock).toHaveBeenCalledTimes(1);
   });
 });

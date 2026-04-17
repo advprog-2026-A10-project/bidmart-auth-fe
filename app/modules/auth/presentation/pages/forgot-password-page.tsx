@@ -4,24 +4,20 @@ import {
   ForgotPasswordForm,
   type ForgotPasswordFormValues,
 } from "../components/forgot-password-form";
-import { AUTH_PAGE_MOCK_PAYLOADS } from "./constant";
+import { useForgotPasswordMutation } from "../hooks/use-forgot-password-mutation";
 
 export function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const forgotPasswordMock = AUTH_PAGE_MOCK_PAYLOADS.forgotPassword;
+  const forgotPasswordMutation = useForgotPasswordMutation();
 
-  function handleSubmit(values: ForgotPasswordFormValues) {
-    const request = { ...forgotPasswordMock.request, email: values.email };
-    void request;
+  async function handleSubmit(values: ForgotPasswordFormValues) {
+    await forgotPasswordMutation.mutateAsync({ email: values.email });
     void navigate("/forgot-password/sent");
   }
 
   return (
-    <AuthCard
-      title="Forgot password?"
-      description="Placeholder forgot-password flow using mock request/response payloads."
-    >
-      <ForgotPasswordForm onSubmit={handleSubmit} isSubmitting={false} />
+    <AuthCard title="Forgot password?" description="Enter your email to receive a reset link.">
+      <ForgotPasswordForm onSubmit={handleSubmit} isSubmitting={forgotPasswordMutation.isPending} />
     </AuthCard>
   );
 }
