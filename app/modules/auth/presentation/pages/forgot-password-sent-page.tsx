@@ -13,7 +13,7 @@ export function ForgotPasswordSentPage() {
           Didn&apos;t receive it? Check your spam folder or try again.
         </p>
         <Button asChild className="w-full" variant="outline">
-          <Link to="/forgot-password">Try again</Link>
+          <Link to="/auth/forgot-password">Try again</Link>
         </Button>
         <p className="text-muted-foreground text-sm">
           <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">

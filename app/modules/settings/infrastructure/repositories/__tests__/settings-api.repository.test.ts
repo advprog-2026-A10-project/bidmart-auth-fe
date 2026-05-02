@@ -22,7 +22,12 @@ describe("SettingsApiRepository MFA contract", () => {
   });
 
   it("parses MFA status from backend email/totp enabled flags", async () => {
-    mockedApiClient.get.mockResolvedValue({ emailEnabled: true, totpEnabled: false });
+    mockedApiClient.get.mockResolvedValue({
+      emailEnabled: true,
+      totpEnabled: false,
+      mfaEnabled: true,
+      mfaType: "email",
+    });
 
     await expect(repository.getMfaStatus()).resolves.toEqual({
       emailEnabled: true,
@@ -37,6 +42,7 @@ describe("SettingsApiRepository MFA contract", () => {
       setupTicket: "setup-ticket",
       secret: "SECRET",
       otpauthUrl: "otpauth://totp/BidMart:alice@example.com?secret=SECRET&issuer=BidMart",
+      qrCodeUrl: "otpauth://totp/BidMart:alice@example.com?secret=SECRET&issuer=BidMart",
     });
 
     await expect(
@@ -45,6 +51,7 @@ describe("SettingsApiRepository MFA contract", () => {
       setupTicket: "setup-ticket",
       secret: "SECRET",
       otpauthUrl: expect.stringContaining("otpauth://"),
+      qrCodeUrl: expect.stringContaining("otpauth://"),
     });
 
     expect(mockedApiClient.post).toHaveBeenCalledWith(

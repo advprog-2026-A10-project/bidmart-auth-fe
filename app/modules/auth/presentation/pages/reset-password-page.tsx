@@ -17,7 +17,7 @@ export function ResetPasswordPage() {
 
   useEffect(() => {
     if (!token) {
-      void navigate("/reset-password/invalid", { replace: true });
+      void navigate("/auth/reset-password/invalid", { replace: true });
     }
   }, [navigate, token]);
 
@@ -30,15 +30,15 @@ export function ResetPasswordPage() {
         token: resetToken,
         password: values.password,
       });
-      void navigate("/reset-password/success");
+      void navigate("/auth/reset-password/success");
     } catch (error) {
       if (error instanceof TokenExpiredError || error instanceof MfaExpiredError) {
-        void navigate("/reset-password/expired");
+        void navigate("/auth/reset-password/expired");
         return;
       }
 
       if (error instanceof InvalidResetTokenError || error instanceof Error) {
-        void navigate("/reset-password/invalid");
+        void navigate("/auth/reset-password/invalid");
       }
     }
   }

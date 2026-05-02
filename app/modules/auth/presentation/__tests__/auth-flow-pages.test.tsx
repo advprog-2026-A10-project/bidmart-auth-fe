@@ -203,7 +203,7 @@ describe("auth page flows", () => {
       expect(forgotPasswordMutateAsyncMock).toHaveBeenCalledWith({
         email: "reset@example.com",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/forgot-password/sent");
+      expect(navigateMock).toHaveBeenCalledWith("/auth/forgot-password/sent");
     });
   });
 
@@ -222,7 +222,7 @@ describe("auth page flows", () => {
         token: "valid-reset-token",
         password: "NewPassword123!",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/reset-password/success");
+      expect(navigateMock).toHaveBeenCalledWith("/auth/reset-password/success");
     });
 
     cleanup();
@@ -234,7 +234,7 @@ describe("auth page flows", () => {
     fillField(/confirm password/i, "NewPassword123!");
     await user.click(screen.getByRole("button", { name: /reset password/i }));
     await waitFor(() => {
-      expect(navigateMock).toHaveBeenCalledWith("/reset-password/expired");
+      expect(navigateMock).toHaveBeenCalledWith("/auth/reset-password/expired");
     });
 
     cleanup();
@@ -246,7 +246,7 @@ describe("auth page flows", () => {
     fillField(/confirm password/i, "NewPassword123!");
     await user.click(screen.getByRole("button", { name: /reset password/i }));
     await waitFor(() => {
-      expect(navigateMock).toHaveBeenCalledWith("/reset-password/invalid");
+      expect(navigateMock).toHaveBeenCalledWith("/auth/reset-password/invalid");
     });
   });
 

@@ -342,8 +342,8 @@ type UpdateNotificationPreferencesDTO = {
 | `/register`                          | `POST /auth/register`                                                                                             |
 | `/auth/check-email`                  | `POST /auth/resend-verification`                                                                                  |
 | `/auth/verify-email?token=...`       | `POST /auth/verify-email`                                                                                         |
-| `/forgot-password`                   | `POST /auth/forgot-password`                                                                                      |
-| `/reset-password?token=...`          | `POST /auth/reset-password`                                                                                       |
+| `/auth/forgot-password`              | `POST /auth/forgot-password`                                                                                      |
+| `/auth/reset-password?token=...`     | `POST /auth/reset-password`                                                                                       |
 | `/auth/mfa/totp`                     | `POST /auth/mfa/verify-totp`                                                                                      |
 | `/auth/mfa/email`                    | `POST /auth/mfa/send-email`, `POST /auth/mfa/verify-email`                                                        |
 | `/settings/profile`                  | `GET /settings/profile`, `PUT /settings/profile`                                                                  |

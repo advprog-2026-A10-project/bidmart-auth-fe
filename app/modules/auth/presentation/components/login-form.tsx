@@ -67,7 +67,7 @@ export function LoginForm({ onSubmit, isSubmitting = false }: LoginFormProps) {
 
         <p className="text-muted-foreground text-right text-sm">
           <Link
-            to="/forgot-password"
+            to="/auth/forgot-password"
             className="hover:text-primary font-medium underline underline-offset-4"
           >
             Forgot password?

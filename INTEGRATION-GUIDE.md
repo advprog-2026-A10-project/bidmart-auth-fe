@@ -34,7 +34,7 @@ APP_AUTH_JWT_SECRET=dev-only-change-me-dev-only-change-me
 APP_RESEND_API_KEY=re_xxx
 APP_RESEND_FROM_EMAIL=Bidmart <noreply@bidmart.bid>
 APP_VERIFY_EMAIL_URL_BASE=http://127.0.0.1:5173/auth/verify-email?token=
-APP_PASSWORD_RESET_URL_BASE=http://127.0.0.1:5173/reset-password?token=
+APP_PASSWORD_RESET_URL_BASE=http://127.0.0.1:5173/auth/reset-password?token=
 ```
 
 Do not hardcode secrets or public domains in source.
@@ -114,12 +114,12 @@ Email verification routes:
 
 ### Forgot and Reset Password
 
-- `/forgot-password`
-- `/forgot-password/sent`
-- `/reset-password?token=...`
-- `/reset-password/success`
-- `/reset-password/expired`
-- `/reset-password/invalid`
+- `/auth/forgot-password`
+- `/auth/forgot-password/sent`
+- `/auth/reset-password?token=...`
+- `/auth/reset-password/success`
+- `/auth/reset-password/expired`
+- `/auth/reset-password/invalid`
 
 APIs:
 

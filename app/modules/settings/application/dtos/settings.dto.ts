@@ -23,6 +23,7 @@ export type SetupMfaTotpResultDTO = {
   setupTicket: string;
   secret: string;
   otpauthUrl: string;
+  qrCodeUrl?: string;
 };
 
 export type SetupMfaEmailDTO = {

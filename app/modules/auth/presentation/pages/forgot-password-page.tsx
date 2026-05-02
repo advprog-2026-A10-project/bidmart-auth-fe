@@ -12,7 +12,7 @@ export function ForgotPasswordPage() {
 
   async function handleSubmit(values: ForgotPasswordFormValues) {
     await forgotPasswordMutation.mutateAsync({ email: values.email });
-    void navigate("/forgot-password/sent");
+    void navigate("/auth/forgot-password/sent");
   }
 
   return (

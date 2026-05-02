@@ -107,6 +107,7 @@ export class SettingsApiRepository implements ISettingsRepository {
       setupTicket: validated.setupTicket,
       secret: validated.secret,
       otpauthUrl: validated.otpauthUrl,
+      qrCodeUrl: validated.qrCodeUrl,
     };
   }
 
