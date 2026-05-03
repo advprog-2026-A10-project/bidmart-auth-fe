@@ -35,8 +35,8 @@ export class SettingsApiMapper {
 
   static toMfaStatus(raw: MfaStatusApiResponse): MfaStatus {
     return {
-      emailEnabled: raw.emailEnabled,
-      totpEnabled: raw.totpEnabled,
+      mfaEnabled: raw.mfaEnabled,
+      mfaType: raw.mfaType,
     };
   }
 

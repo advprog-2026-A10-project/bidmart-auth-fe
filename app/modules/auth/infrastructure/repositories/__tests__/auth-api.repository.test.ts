@@ -23,12 +23,14 @@ describe("AuthApiRepository logout", () => {
 
   it("clears local auth state even when the backend logout endpoint fails", async () => {
     setAccessToken("memory-token");
-    setCurrentUser(createUser({
-      id: "user-1",
-      name: "Alice",
-      email: "alice@example.com",
-      emailVerified: true,
-    }));
+    setCurrentUser(
+      createUser({
+        id: "user-1",
+        name: "Alice",
+        email: "alice@example.com",
+        emailVerified: true,
+      }),
+    );
     mockedApiClient.post.mockRejectedValue(new NetworkError("Not found", 404));
 
     await expect(new AuthApiRepository().logout()).resolves.toBeUndefined();

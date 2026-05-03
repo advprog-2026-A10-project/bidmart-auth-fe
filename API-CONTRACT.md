@@ -147,22 +147,22 @@ Success:
 
 ## 4. Settings Endpoints (`/settings/*`)
 
-| Method | Endpoint                                 | Request Body                                        | Success Response          |
-| ------ | ---------------------------------------- | --------------------------------------------------- | ------------------------- |
-| GET    | `/settings/profile`                      | none                                                | `{ user }`                |
-| PUT    | `/settings/profile`                      | `UpdateProfileDTO`                                  | `{ message, user }`       |
-| GET    | `/settings/security/sessions`            | none                                                | `{ sessions: Session[] }` |
-| DELETE | `/settings/security/sessions/:sessionId` | none                                                | `{ message }`             |
-| DELETE | `/settings/security/sessions`            | none                                                | `{ message }`             |
-| POST   | `/settings/security/password`            | `ChangePasswordDTO`                                 | `{ message }`             |
-| GET    | `/settings/security/mfa`                 | none                                                | `{ emailEnabled, totpEnabled }` |
+| Method | Endpoint                                 | Request Body                                        | Success Response                      |
+| ------ | ---------------------------------------- | --------------------------------------------------- | ------------------------------------- |
+| GET    | `/settings/profile`                      | none                                                | `{ user }`                            |
+| PUT    | `/settings/profile`                      | `UpdateProfileDTO`                                  | `{ message, user }`                   |
+| GET    | `/settings/security/sessions`            | none                                                | `{ sessions: Session[] }`             |
+| DELETE | `/settings/security/sessions/:sessionId` | none                                                | `{ message }`                         |
+| DELETE | `/settings/security/sessions`            | none                                                | `{ message }`                         |
+| POST   | `/settings/security/password`            | `ChangePasswordDTO`                                 | `{ message }`                         |
+| GET    | `/settings/security/mfa`                 | none                                                | `{ emailEnabled, totpEnabled }`       |
 | POST   | `/settings/security/mfa/totp/setup`      | `{ currentPassword }`                               | `{ setupTicket, secret, otpauthUrl }` |
-| POST   | `/settings/security/mfa/totp/verify`     | `SettingsVerifyMfaTotpDTO`                          | `{ message }`             |
-| POST   | `/settings/security/mfa/email/setup`     | `{ currentPassword }`                               | `{ message }`             |
-| POST   | `/settings/security/mfa/email/verify`    | `SettingsVerifyMfaEmailDTO`                         | `{ message }`             |
-| POST   | `/settings/security/mfa/disable`         | `DisableMfaDTO`                                     | `{ message }`             |
-| GET    | `/settings/notifications`                | none                                                | `{ preferences }`         |
-| PUT    | `/settings/notifications`                | `{ preferences: Partial<NotificationPreferences> }` | `{ message }`             |
+| POST   | `/settings/security/mfa/totp/verify`     | `SettingsVerifyMfaTotpDTO`                          | `{ message }`                         |
+| POST   | `/settings/security/mfa/email/setup`     | `{ currentPassword }`                               | `{ message }`                         |
+| POST   | `/settings/security/mfa/email/verify`    | `SettingsVerifyMfaEmailDTO`                         | `{ message }`                         |
+| POST   | `/settings/security/mfa/disable`         | `DisableMfaDTO`                                     | `{ message }`                         |
+| GET    | `/settings/notifications`                | none                                                | `{ preferences }`                     |
+| PUT    | `/settings/notifications`                | `{ preferences: Partial<NotificationPreferences> }` | `{ message }`                         |
 
 ### Settings Payload Examples
 

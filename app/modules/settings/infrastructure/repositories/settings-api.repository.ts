@@ -145,7 +145,9 @@ export class SettingsApiRepository implements ISettingsRepository {
 
   async disableMfa(data: DisableMfaDTO): Promise<{ message: string }> {
     try {
-      const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/disable`, data);
+      const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/disable`, {
+        password: data.currentPassword,
+      });
       const validated = messageApiSchema.parse(raw);
       return { message: validated.message };
     } catch (error) {

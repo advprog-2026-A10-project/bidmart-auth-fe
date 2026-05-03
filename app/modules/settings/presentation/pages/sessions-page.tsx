@@ -1,30 +1,22 @@
-import { toast } from "sonner";
 import { Button } from "~/shared/components/ui/button";
 import { SessionCard } from "../components/session-card";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
-import { useState } from "react";
+import { useGetSessionsQuery } from "../hooks/use-get-sessions-query";
+import { useRevokeAllSessionsMutation } from "../hooks/use-revoke-all-sessions-mutation";
+import { useRevokeSessionMutation } from "../hooks/use-revoke-session-mutation";
 
 export function SessionsPage() {
-  const [sessions, setSessions] = useState(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.get);
-  const [isRevokingAll, setIsRevokingAll] = useState(false);
-  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
+  const { data: sessions = [], isLoading, isError, error } = useGetSessionsQuery();
+  const revokeSession = useRevokeSessionMutation();
+  const revokeAllSessions = useRevokeAllSessionsMutation();
 
   const hasOtherSessions = sessions?.some((s) => !s.isCurrent);
 
-  function handleRevokeSession(sessionId: string) {
-    setRevokingSessionId(sessionId);
-    const request = { ...SETTINGS_PAGE_MOCK_PAYLOADS.sessions.request.revoke, sessionId };
-    void request;
-    setSessions((current) => current.filter((session) => session.id !== sessionId));
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revoke.message);
-    setRevokingSessionId(null);
+  async function handleRevokeSession(sessionId: string) {
+    await revokeSession.mutateAsync({ sessionId });
   }
 
-  function handleRevokeAll() {
-    setIsRevokingAll(true);
-    setSessions((current) => current.filter((session) => session.isCurrent));
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.sessions.response.revokeAll.message);
-    setIsRevokingAll(false);
+  async function handleRevokeAll() {
+    await revokeAllSessions.mutateAsync();
   }
 
   return (
@@ -39,21 +31,30 @@ export function SessionsPage() {
             variant="destructive"
             size="sm"
             onClick={handleRevokeAll}
-            disabled={isRevokingAll}
+            disabled={revokeAllSessions.isPending}
           >
-            {isRevokingAll ? "Revoking..." : "Revoke all other sessions"}
+            {revokeAllSessions.isPending ? "Revoking..." : "Revoke all other sessions"}
           </Button>
         )}
       </div>
+      {isLoading ? <p className="text-muted-foreground text-sm">Loading sessions...</p> : null}
+      {isError ? (
+        <p className="text-destructive text-sm">
+          {error instanceof Error ? error.message : "Unable to load sessions."}
+        </p>
+      ) : null}
       <div className="space-y-3">
         {sessions?.map((session) => (
           <SessionCard
             key={session.id}
             session={session}
             onRevoke={handleRevokeSession}
-            isRevoking={revokingSessionId === session.id}
+            isRevoking={revokeSession.isPending}
           />
         ))}
+        {!isLoading && !isError && sessions.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No active sessions found.</p>
+        ) : null}
       </div>
     </div>
   );

@@ -12,11 +12,12 @@ describe("apiClient", () => {
   });
 
   it("uses same-origin credentials and attaches bearer token only from volatile memory", async () => {
-    const fetchMock = vi.fn().mockImplementation(() =>
-      new Response(JSON.stringify({ message: "ok" }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+    const fetchMock = vi.fn().mockImplementation(
+      () =>
+        new Response(JSON.stringify({ message: "ok" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
     );
     vi.stubGlobal("fetch", fetchMock);
     const session = btoa(

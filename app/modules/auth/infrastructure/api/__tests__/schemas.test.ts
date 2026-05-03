@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { loginResponseApiSchema, mfaVerifyApiSchema } from "../schemas";
-import { getMfaStatusApiSchema, setupMfaTotpApiSchema, messageApiSchema } from "~/modules/settings/infrastructure/api/schemas";
+import {
+  getMfaStatusApiSchema,
+  setupMfaTotpApiSchema,
+  messageApiSchema,
+} from "~/modules/settings/infrastructure/api/schemas";
 
 describe("API schema contracts", () => {
   it("accepts login success and MFA-required branches", () => {
@@ -28,9 +32,9 @@ describe("API schema contracts", () => {
         accessToken: "jwt",
       }),
     ).toMatchObject({ accessToken: "jwt" });
-    expect(getMfaStatusApiSchema.parse({ emailEnabled: false, totpEnabled: true })).toMatchObject({
-      emailEnabled: false,
-      totpEnabled: true,
+    expect(getMfaStatusApiSchema.parse({ mfaEnabled: true, mfaType: "totp" })).toMatchObject({
+      mfaEnabled: true,
+      mfaType: "totp",
     });
     expect(
       setupMfaTotpApiSchema.parse({

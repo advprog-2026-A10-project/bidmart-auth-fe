@@ -1,23 +1,30 @@
-import { toast } from "sonner";
 import { NotificationsForm } from "~/modules/settings/presentation/components/notifications-form";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
-import { useState } from "react";
+import { useGetNotificationPreferencesQuery } from "../hooks/use-get-notification-preferences-query";
+import { useUpdateNotificationPreferencesMutation } from "../hooks/use-update-notification-preferences-mutation";
 
 export function NotificationsPage() {
-  const preferences = SETTINGS_PAGE_MOCK_PAYLOADS.notifications.response.get;
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: preferences, isLoading, isError, error } = useGetNotificationPreferencesQuery();
+  const updatePreferences = useUpdateNotificationPreferencesMutation();
 
-  function handleSubmit(values: {
+  async function handleSubmit(values: {
     emailNotifications: boolean;
     pushNotifications: boolean;
     marketingEmails: boolean;
     securityAlerts: boolean;
   }) {
-    setIsSubmitting(true);
-    const request = { ...SETTINGS_PAGE_MOCK_PAYLOADS.notifications.request.update, ...values };
-    void request;
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.notifications.response.update.message);
-    setIsSubmitting(false);
+    await updatePreferences.mutateAsync(values);
+  }
+
+  if (isLoading) {
+    return <p className="text-muted-foreground text-sm">Loading notification preferences...</p>;
+  }
+
+  if (isError || !preferences) {
+    return (
+      <p className="text-destructive text-sm">
+        {error instanceof Error ? error.message : "Unable to load notification preferences."}
+      </p>
+    );
   }
 
   return (
@@ -35,7 +42,7 @@ export function NotificationsPage() {
           securityAlerts: preferences.securityAlerts ?? false,
         }}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        isSubmitting={updatePreferences.isPending}
       />
     </div>
   );

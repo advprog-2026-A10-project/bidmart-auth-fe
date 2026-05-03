@@ -1,18 +1,25 @@
-import { toast } from "sonner";
 import { ProfileForm } from "~/modules/settings/presentation/components/profile-form";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
-import { useState } from "react";
+import { useGetProfileQuery } from "../hooks/use-get-profile-query";
+import { useUpdateProfileMutation } from "../hooks/use-update-profile-mutation";
 
 export function ProfilePage() {
-  const profile = SETTINGS_PAGE_MOCK_PAYLOADS.profile.response.get;
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: profile, isLoading, isError, error } = useGetProfileQuery();
+  const updateProfile = useUpdateProfileMutation();
 
-  function handleSubmit(values: { name: string; address: string; postalCode: string }) {
-    setIsSubmitting(true);
-    const request = { ...SETTINGS_PAGE_MOCK_PAYLOADS.profile.request.update, ...values };
-    void request;
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.profile.response.update.message);
-    setIsSubmitting(false);
+  async function handleSubmit(values: { name: string; address: string; postalCode: string }) {
+    await updateProfile.mutateAsync(values);
+  }
+
+  if (isLoading) {
+    return <p className="text-muted-foreground text-sm">Loading profile...</p>;
+  }
+
+  if (isError || !profile) {
+    return (
+      <p className="text-destructive text-sm">
+        {error instanceof Error ? error.message : "Unable to load profile."}
+      </p>
+    );
   }
 
   return (
@@ -29,7 +36,7 @@ export function ProfilePage() {
           postalCode: profile.postalCode,
         }}
         onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
+        isSubmitting={updateProfile.isPending}
       />
     </div>
   );

@@ -84,7 +84,7 @@ describe("settings MFA pages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     getMfaStatusMock.mockReturnValue({
-      data: { emailEnabled: false, totpEnabled: false },
+      data: { mfaEnabled: false, mfaType: null },
       isLoading: false,
       isError: false,
       error: null,
@@ -93,7 +93,7 @@ describe("settings MFA pages", () => {
 
   it("renders MFA status from the status hook", () => {
     getMfaStatusMock.mockReturnValue({
-      data: { emailEnabled: false, totpEnabled: true },
+      data: { mfaEnabled: true, mfaType: "totp" },
       isLoading: false,
       isError: false,
       error: null,

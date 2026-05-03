@@ -3,13 +3,15 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 function collectPaths(routes: Awaited<ReturnType<typeof flatRoutes>>, parent = ""): string[] {
-  return routes.flatMap((route) => {
-    const current = route.path ? [parent, route.path].filter(Boolean).join("/") : parent;
-    return [
-      current || undefined,
-      ...collectPaths("children" in route && route.children ? route.children : [], current),
-    ];
-  }).filter((path): path is string => typeof path === "string");
+  return routes
+    .flatMap((route) => {
+      const current = route.path ? [parent, route.path].filter(Boolean).join("/") : parent;
+      return [
+        current || undefined,
+        ...collectPaths("children" in route && route.children ? route.children : [], current),
+      ];
+    })
+    .filter((path): path is string => typeof path === "string");
 }
 
 describe("auth routes", () => {
@@ -44,6 +46,11 @@ describe("auth routes", () => {
         "auth/mfa/totp",
         "auth/mfa/email",
         "auth/mfa/expired",
+        "settings/profile",
+        "settings/notifications",
+        "settings/security",
+        "settings/security/password",
+        "settings/security/sessions",
         "settings/security/mfa",
         "settings/security/mfa/totp/setup",
         "settings/security/mfa/email/setup",

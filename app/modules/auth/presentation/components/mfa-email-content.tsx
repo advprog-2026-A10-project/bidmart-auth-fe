@@ -45,7 +45,13 @@ export function MfaEmailContent({
         />
       </div>
       <div className="text-center text-sm">
-        <Button type="button" variant="outline" size="sm" onClick={handleResend} disabled={isSending}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleResend}
+          disabled={isSending}
+        >
           {isSending ? "Sending..." : "Resend code"}
         </Button>
         {resendCount > 0 ? (

@@ -28,7 +28,11 @@ export function VerifyEmailTokenPage() {
             ? (error as { statusCode?: number }).statusCode
             : undefined;
 
-        if (error instanceof TokenExpiredError || error instanceof GoneError || statusCode === 410) {
+        if (
+          error instanceof TokenExpiredError ||
+          error instanceof GoneError ||
+          statusCode === 410
+        ) {
           void navigate("/auth/verify-email/expired", { replace: true });
           return;
         }

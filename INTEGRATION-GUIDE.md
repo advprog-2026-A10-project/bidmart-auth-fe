@@ -43,14 +43,14 @@ Do not hardcode secrets or public domains in source.
 
 All requests go through `apiClient`.
 
-| Behavior | Detail |
-| --- | --- |
-| `Content-Type: application/json` | JSON request bodies. |
-| `Accept: application/json` | JSON responses expected. |
+| Behavior                              | Detail                                                   |
+| ------------------------------------- | -------------------------------------------------------- |
+| `Content-Type: application/json`      | JSON request bodies.                                     |
+| `Accept: application/json`            | JSON responses expected.                                 |
 | `Authorization: Bearer <accessToken>` | Added only when an access token exists in module memory. |
-| `credentials: "same-origin"` | Cross-origin API calls do not send browser cookies. |
-| 204 No Content | Returned as `undefined`. |
-| Error parsing | Non-2xx JSON errors are mapped before throwing. |
+| `credentials: "same-origin"`          | Cross-origin API calls do not send browser cookies.      |
+| 204 No Content                        | Returned as `undefined`.                                 |
+| Error parsing                         | Non-2xx JSON errors are mapped before throwing.          |
 
 CORS should allow the frontend origin, methods `GET, POST, PUT, DELETE, OPTIONS`, and headers `Content-Type, Accept, Authorization`. Authenticated cross-origin requests use the `Authorization` header, not browser cookies.
 
@@ -159,26 +159,26 @@ Routes:
 
 APIs:
 
-| Action | Method and endpoint | Request | Response |
-| --- | --- | --- | --- |
-| Status | `GET /settings/security/mfa` | none | `{ emailEnabled, totpEnabled }` |
-| TOTP setup | `POST /settings/security/mfa/totp/setup` | `{ currentPassword }` | `{ setupTicket, secret, otpauthUrl }` |
-| TOTP verify | `POST /settings/security/mfa/totp/verify` | `{ setupTicket, code, currentPassword }` | `{ message }` |
-| Email setup | `POST /settings/security/mfa/email/setup` | `{ currentPassword }` | `{ message }` |
-| Email verify | `POST /settings/security/mfa/email/verify` | `{ code, currentPassword }` | `{ message }` |
-| Disable MFA | `POST /settings/security/mfa/disable` | `{ currentPassword }` | `{ message }` |
+| Action       | Method and endpoint                        | Request                                  | Response                              |
+| ------------ | ------------------------------------------ | ---------------------------------------- | ------------------------------------- |
+| Status       | `GET /settings/security/mfa`               | none                                     | `{ emailEnabled, totpEnabled }`       |
+| TOTP setup   | `POST /settings/security/mfa/totp/setup`   | `{ currentPassword }`                    | `{ setupTicket, secret, otpauthUrl }` |
+| TOTP verify  | `POST /settings/security/mfa/totp/verify`  | `{ setupTicket, code, currentPassword }` | `{ message }`                         |
+| Email setup  | `POST /settings/security/mfa/email/setup`  | `{ currentPassword }`                    | `{ message }`                         |
+| Email verify | `POST /settings/security/mfa/email/verify` | `{ code, currentPassword }`              | `{ message }`                         |
+| Disable MFA  | `POST /settings/security/mfa/disable`      | `{ currentPassword }`                    | `{ message }`                         |
 
 Settings MFA setup, verification, and disable requests must include `currentPassword`.
 
 ## 7. Error Mapping
 
-| HTTP status | Frontend mapping |
-| --- | --- |
-| 400 | `NetworkError`; reset password remaps to `InvalidResetTokenError`, MFA setup can remap to `InvalidMfaCodeError`. |
-| 401 | `NetworkError`; wrong current password remaps to `InvalidCurrentPasswordError`. |
-| 404 | `NotFoundError`. |
-| 410 | `GoneError`; reset password remaps to `TokenExpiredError`, MFA auth remaps to `MfaExpiredError`. |
-| 422 | `ValidationError`. |
+| HTTP status | Frontend mapping                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| 400         | `NetworkError`; reset password remaps to `InvalidResetTokenError`, MFA setup can remap to `InvalidMfaCodeError`. |
+| 401         | `NetworkError`; wrong current password remaps to `InvalidCurrentPasswordError`.                                  |
+| 404         | `NotFoundError`.                                                                                                 |
+| 410         | `GoneError`; reset password remaps to `TokenExpiredError`, MFA auth remaps to `MfaExpiredError`.                 |
+| 422         | `ValidationError`.                                                                                               |
 
 All non-2xx responses should include a JSON `message`; validation responses should include field errors.
 

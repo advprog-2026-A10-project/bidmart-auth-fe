@@ -41,17 +41,13 @@ export const messageApiSchema = z.object({
 
 // --- MFA Status ---
 export const mfaStatusApiSchema = z.object({
-  emailEnabled: z.boolean(),
-  totpEnabled: z.boolean(),
-  mfaEnabled: z.boolean().optional(),
-  mfaType: z.enum(["email", "totp"]).nullable().optional(),
+  mfaEnabled: z.boolean(),
+  mfaType: z.enum(["email", "totp"]).nullable(),
 });
 
 export const getMfaStatusApiSchema = z.object({
-  emailEnabled: z.boolean(),
-  totpEnabled: z.boolean(),
-  mfaEnabled: z.boolean().optional(),
-  mfaType: z.enum(["email", "totp"]).nullable().optional(),
+  mfaEnabled: z.boolean(),
+  mfaType: z.enum(["email", "totp"]).nullable(),
 });
 
 // --- MFA TOTP Setup ---

@@ -116,7 +116,7 @@ export default function MfaTotpSetupPage() {
                     {setupData.secret}
                   </code>
                 </div>
-                <p className="text-muted-foreground max-w-full break-all text-center font-mono text-xs">
+                <p className="text-muted-foreground max-w-full text-center font-mono text-xs break-all">
                   {setupData.otpauthUrl}
                 </p>
               </div>

@@ -97,8 +97,8 @@ export const SETTINGS_PAGE_MOCK_PAYLOADS = {
   security: {
     response: {
       mfaStatus: {
-        emailEnabled: false,
-        totpEnabled: false,
+        mfaEnabled: false,
+        mfaType: null,
       } satisfies MfaStatus,
     },
   },

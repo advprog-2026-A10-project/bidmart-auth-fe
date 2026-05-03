@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -10,22 +9,16 @@ import {
   ChangePasswordForm,
   type ChangePasswordFormValues,
 } from "../components/change-password-form";
-import { SETTINGS_PAGE_MOCK_PAYLOADS } from "./constant";
-import { useState } from "react";
+import { useChangePasswordMutation } from "../hooks/use-change-password-mutation";
 
 export function ChangePasswordPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const changePassword = useChangePasswordMutation();
 
   const handleSubmit = async (values: ChangePasswordFormValues) => {
-    setIsSubmitting(true);
-    const request = {
-      ...SETTINGS_PAGE_MOCK_PAYLOADS.changePassword.request.change,
+    await changePassword.mutateAsync({
       currentPassword: values.currentPassword,
       newPassword: values.newPassword,
-    };
-    void request;
-    toast.success(SETTINGS_PAGE_MOCK_PAYLOADS.changePassword.response.success.message);
-    setIsSubmitting(false);
+    });
   };
 
   return (
@@ -40,7 +33,7 @@ export function ChangePasswordPage() {
           <CardDescription>Enter your current password and choose a new one.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChangePasswordForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+          <ChangePasswordForm onSubmit={handleSubmit} isSubmitting={changePassword.isPending} />
         </CardContent>
       </Card>
     </div>
