@@ -78,14 +78,8 @@ export class AuthApiRepository implements IAuthRepository {
   }
 
   async logout(): Promise<void> {
-    try {
-      await apiClient.post<void>(`${this.basePath}/logout`);
-    } catch {
-      // Local memory is the source of truth for Bearer auth state.
-    } finally {
-      clearAccessToken();
-      clearCurrentUser();
-    }
+    clearAccessToken();
+    clearCurrentUser();
   }
 
   // ── Password reset ──────────────────────────────────────────────────────────
