@@ -180,6 +180,32 @@ describe("auth page flows", () => {
     });
   });
 
+  it("submits a verify-email token only once across rerenders", async () => {
+    searchParamsMock.mockReturnValue(new URLSearchParams("token=single-use-token"));
+    verifyEmailMutateAsyncMock.mockResolvedValue({ message: "Email verified." });
+    const queryClient = new QueryClient();
+
+    const view = render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <VerifyEmailTokenPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    view.rerender(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <VerifyEmailTokenPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith("/auth/verify-email/success", { replace: true });
+    });
+    expect(verifyEmailMutateAsyncMock).toHaveBeenCalledTimes(1);
+  });
+
   it("routes expired and invalid verify-email errors to /auth result routes", async () => {
     searchParamsMock.mockReturnValue(new URLSearchParams("token=expired-token"));
     verifyEmailMutateAsyncMock.mockRejectedValueOnce(new MfaExpiredError());

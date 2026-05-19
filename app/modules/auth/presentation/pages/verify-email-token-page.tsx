@@ -5,6 +5,9 @@ import { useVerifyEmailMutation } from "../hooks/use-verify-email-mutation";
 import { TokenExpiredError } from "~/modules/auth/domain/errors/auth-errors";
 import { GoneError } from "~/shared/domain/errors/gone-error";
 
+const pendingVerificationTokens = new Set<string>();
+const verifiedEmailTokens = new Set<string>();
+
 export function VerifyEmailTokenPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
@@ -17,12 +20,28 @@ export function VerifyEmailTokenPage() {
       return;
     }
 
+    if (verifiedEmailTokens.has(token)) {
+      void navigate("/auth/verify-email/success", { replace: true });
+      return;
+    }
+
+    if (pendingVerificationTokens.has(token)) {
+      return;
+    }
+
+    pendingVerificationTokens.add(token);
     verifyEmail
       .mutateAsync({ token })
       .then(() => {
+        verifiedEmailTokens.add(token);
         void navigate("/auth/verify-email/success", { replace: true });
       })
       .catch((error: unknown) => {
+        if (verifiedEmailTokens.has(token)) {
+          void navigate("/auth/verify-email/success", { replace: true });
+          return;
+        }
+
         const statusCode =
           error instanceof Error && "statusCode" in error
             ? (error as { statusCode?: number }).statusCode
@@ -38,6 +57,9 @@ export function VerifyEmailTokenPage() {
         }
 
         void navigate("/auth/verify-email/invalid", { replace: true });
+      })
+      .finally(() => {
+        pendingVerificationTokens.delete(token);
       });
   }, [navigate, token, verifyEmail]);
 
