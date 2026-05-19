@@ -1,139 +1,96 @@
-# API Contract
+# BidMart Auth API Contract (FE-facing)
 
-## 1. Overview
+Base URL: `VITE_API_BASE_URL`
 
-This document defines the backend REST contract for the entire project, covering both the authentication and user settings modules. All endpoints use `application/json` for both request and response bodies. While `/auth/*` endpoints handle login and verification, all `/settings/*` endpoints require an authenticated user context from an `Authorization: Bearer <accessToken>` header.
+## Auth Endpoints
 
-## 2. Shared Transport Rules
+### POST `/auth/register`
 
-The frontend validates all responses with Zod schemas. Non-2xx responses must return a JSON error envelope to ensure proper domain error mapping.
-
-### Recommended Error Envelope
+Request (canonical):
 
 ```json
 {
-  "message": "Human-readable error description",
-  "code": "OPTIONAL_MACHINE_CODE",
-  "errors": {
-    "field": ["validation failure message"]
-  }
+  "firstName": "Alice",
+  "lastName": "Johnson",
+  "email": "alice@example.com",
+  "password": "StrongPassword123!",
+  "confirmPassword": "StrongPassword123!"
 }
 ```
 
-### Status Code Semantics
+Legacy compatibility:
 
-- **400**: Invalid token or code (used in password reset and MFA verification flows).
-- **401**: Unauthorized or invalid current password/credentials.
-- **404**: Resource not found (e.g., session ID does not exist).
-- **410**: Token or MFA ticket/code has expired.
-- **429**: Too many failed login/MFA attempts in the configured server-side window.
-- **422**: Validation error (requires the `errors` field map).
+```json
+{
+  "name": "Alice Johnson",
+  "email": "alice@example.com",
+  "password": "StrongPassword123!"
+}
+```
 
-## 3. Auth Endpoints (`/auth/*`)
-
-| Method | Endpoint                    | Request DTO             | Success Schema                   | Notes                               |
-| ------ | --------------------------- | ----------------------- | -------------------------------- | ----------------------------------- |
-| POST   | `/auth/login`               | `LoginDTO`              | `loginResponseApiSchema` (union) | Can return MFA-required branch      |
-| POST   | `/auth/register`            | `RegisterDTO`           | `registerApiSchema`              | Returns user and success message    |
-| POST   | `/auth/verify-email`        | `VerifyEmailDTO`        | `messageApiSchema`               | Verifies account via token          |
-| POST   | `/auth/resend-verification` | `ResendVerificationDTO` | `messageApiSchema`               | Re-triggers verification email      |
-| GET    | `/auth/me`                  | none                    | `{ user: User }`                  | Validates Bearer token/session      |
-| POST   | `/auth/forgot-password`     | `ForgotPasswordDTO`     | `messageApiSchema`               | Sends password reset link           |
-| POST   | `/auth/reset-password`      | `ResetPasswordDTO`      | `messageApiSchema`               | Updates password via token          |
-| POST   | `/auth/mfa/send-email`      | `SendMfaEmailDTO`       | `messageApiSchema`               | Sends MFA code to registered email  |
-| POST   | `/auth/mfa/verify-email`    | `VerifyMfaEmailDTO`     | `mfaVerifyApiSchema`             | Validates email code, returns token |
-| POST   | `/auth/mfa/verify-totp`     | `VerifyMfaTotpDTO`      | `mfaVerifyApiSchema`             | Validates TOTP code, returns token  |
-
-### Auth Payload Examples
-
-#### POST `/auth/register`
+### POST `/auth/login`
 
 Request:
 
 ```json
-{
-  "name": "Alice",
-  "email": "alice@example.com",
-  "password": "secret123"
-}
+{ "email": "alice@example.com", "password": "StrongPassword123!" }
 ```
 
-Success:
-
-```json
-{
-  "user": {
-    "id": "user-1",
-    "name": "Alice",
-    "email": "alice@example.com",
-    "emailVerified": false
-  },
-  "message": "Registration successful. Please verify your email."
-}
-```
-
-#### POST `/auth/login`
-
-Request:
-
-```json
-{
-  "email": "alice@example.com",
-  "password": "secret123"
-}
-```
-
-Success (Normal):
+Response (no MFA):
 
 ```json
 {
   "requiresMfa": false,
   "user": {
-    "id": "user-1",
-    "name": "Alice",
+    "id": "...",
+    "name": "Alice Johnson",
     "email": "alice@example.com",
     "emailVerified": true
   },
-  "accessToken": "jwt-access-token"
+  "accessToken": "..."
 }
 ```
 
-Success (MFA Required):
+Response (MFA required):
 
 ```json
 {
   "requiresMfa": true,
-  "ticket": "mfa-ticket-123",
+  "ticket": "...",
   "mfaType": "totp"
 }
 ```
 
-#### POST `/auth/verify-email`
+### POST `/auth/mfa/send-email`
 
-Request:
+### POST `/auth/mfa/verify-email`
 
-```json
-{ "token": "verify-token" }
-```
+### POST `/auth/mfa/verify-totp`
 
-Success:
+- `verify-*` responses include `{ user, accessToken }`.
 
-```json
-{ "message": "Email verified." }
-```
+### POST `/auth/logout`
 
-#### POST `/auth/mfa/verify-totp`
+- Revokes current active session and clears `auth_session` cookie.
+- Response: `{ "message": "Logout successful." }`
 
-Request:
+### POST `/auth/validate`
+
+- Accepts bearer token and/or `auth_session` cookie.
+- Response shape:
 
 ```json
 {
-  "ticket": "mfa-ticket-123",
-  "code": "123456"
+  "userId": "...",
+  "name": "Alice Johnson",
+  "email": "alice@example.com",
+  "emailVerified": true,
+  "mfaSatisfied": true,
+  "sessionExpiry": "2026-01-01T01:00:00+00:00"
 }
 ```
 
-#### GET `/auth/me`
+## Settings Endpoints
 
 Request:
 
@@ -178,7 +135,7 @@ Success:
 | DELETE | `/settings/security/sessions/:sessionId` | none                                                | `{ message }`                         |
 | DELETE | `/settings/security/sessions`            | none                                                | `{ message }`                         |
 | POST   | `/settings/security/password`            | `ChangePasswordDTO`                                 | `{ message }`                         |
-| GET    | `/settings/security/mfa`                 | none                                                | `{ emailEnabled, totpEnabled }`       |
+| GET    | `/settings/security/mfa`                 | none                                                | `{ mfaEnabled, mfaType }`             |
 | POST   | `/settings/security/mfa/totp/setup`      | `{ currentPassword }`                               | `{ setupTicket, secret, otpauthUrl }` |
 | POST   | `/settings/security/mfa/totp/verify`     | `SettingsVerifyMfaTotpDTO`                          | `{ message }`                         |
 | POST   | `/settings/security/mfa/email/setup`     | `{ currentPassword }`                               | `{ message }`                         |

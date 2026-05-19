@@ -25,6 +25,14 @@ const sendMfaEmailMutateAsyncMock = vi.fn();
 const verifyMfaEmailMutateAsyncMock = vi.fn();
 const forgotPasswordMutateAsyncMock = vi.fn();
 const resetPasswordMutateAsyncMock = vi.fn();
+const locationAssignMock = vi.fn();
+
+vi.mock("~/modules/auth/presentation/redirect-target", () => ({
+  resolvePostAuthRedirect: (rawRedirect: string | null) => rawRedirect ?? "/",
+  appendRedirectParam: (pathname: string, redirectTarget: string) =>
+    `${pathname}?redirect=${encodeURIComponent(redirectTarget)}`,
+  redirectToTarget: (target: string) => locationAssignMock(target),
+}));
 
 vi.mock("react-router", async () => {
   const actual = await vi.importActual<typeof ReactRouter>("react-router");
@@ -120,7 +128,7 @@ describe("auth page flows", () => {
     locationStateMock.mockReturnValue(null);
   });
 
-  it("redirects normal login success to an existing settings route through the login hook", async () => {
+  it("redirects normal login success to the MFA offer route", async () => {
     const user = userEvent.setup();
     loginMutateAsyncMock.mockResolvedValue({
       id: "user-1",
@@ -139,7 +147,7 @@ describe("auth page flows", () => {
         email: "alice@example.com",
         password: "secret123",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/settings/profile");
+      expect(navigateMock).toHaveBeenCalledWith("/auth/mfa/offer?redirect=%2F");
     });
   });
 
@@ -154,7 +162,7 @@ describe("auth page flows", () => {
 
     await waitFor(() => {
       expect(navigateMock).toHaveBeenCalledWith("/auth/mfa", {
-        state: { ticket: "ticket-123", mfaType: "totp" },
+        state: { ticket: "ticket-123", mfaType: "totp", redirectTarget: "/" },
       });
     });
     expect(sessionStorage.getItem("bidmart:mfa-ticket")).toContain("ticket-123");
@@ -277,7 +285,7 @@ describe("auth page flows", () => {
         ticket: "ticket-123",
         code: "123456",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/settings/profile");
+      expect(locationAssignMock).toHaveBeenCalledWith("/");
     });
   });
 
@@ -301,7 +309,7 @@ describe("auth page flows", () => {
         ticket: "ticket-123",
         code: "654321",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/settings/profile");
+      expect(locationAssignMock).toHaveBeenCalledWith("/");
     });
   });
 

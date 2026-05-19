@@ -1,7 +1,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 ARG VITE_API_BASE_URL=""
+ARG VITE_REDIRECT_URL=""
+ARG VITE_ALLOWED_REDIRECT_ORIGINS=""
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_REDIRECT_URL=$VITE_REDIRECT_URL
+ENV VITE_ALLOWED_REDIRECT_ORIGINS=$VITE_ALLOWED_REDIRECT_ORIGINS
 COPY package.json ./
 COPY pnpm-lock.yaml* yarn.lock* package-lock.json* ./
 RUN if [ -f pnpm-lock.yaml ]; then corepack enable && pnpm install --frozen-lockfile; \

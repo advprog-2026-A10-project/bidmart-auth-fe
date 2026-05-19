@@ -11,7 +11,7 @@ describe("apiClient", () => {
     sessionStorage.clear();
   });
 
-  it("uses same-origin credentials and attaches bearer token only from volatile memory", async () => {
+  it("uses include credentials and attaches bearer token only from volatile memory", async () => {
     const fetchMock = vi.fn().mockImplementation(
       () =>
         new Response(JSON.stringify({ message: "ok" }), {
@@ -37,7 +37,7 @@ describe("apiClient", () => {
     expect(fetchMock).toHaveBeenLastCalledWith(
       expect.any(String),
       expect.objectContaining({
-        credentials: "same-origin",
+        credentials: "include",
         headers: expect.not.objectContaining({
           Authorization: expect.any(String),
         }),
@@ -51,7 +51,7 @@ describe("apiClient", () => {
     expect(fetchMock).toHaveBeenLastCalledWith(
       expect.any(String),
       expect.objectContaining({
-        credentials: "same-origin",
+        credentials: "include",
         headers: expect.objectContaining({
           Authorization: "Bearer memory-token-123",
         }),

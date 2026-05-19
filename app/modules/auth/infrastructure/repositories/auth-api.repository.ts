@@ -51,9 +51,11 @@ export class AuthApiRepository implements IAuthRepository {
   }
 
   async register(data: {
-    name: string;
+    firstName: string;
+    lastName?: string;
     email: string;
     password: string;
+    confirmPassword: string;
   }): Promise<{ message: string }> {
     const raw = await apiClient.post<unknown>(`${this.basePath}/register`, data);
     const validated = registerApiSchema.parse(raw);
@@ -80,6 +82,8 @@ export class AuthApiRepository implements IAuthRepository {
   async logout(): Promise<void> {
     try {
       await apiClient.post<void>(`${this.basePath}/logout`);
+    } catch {
+      // Local memory is the source of truth for Bearer auth state.
     } finally {
       clearAccessToken();
       clearCurrentUser();

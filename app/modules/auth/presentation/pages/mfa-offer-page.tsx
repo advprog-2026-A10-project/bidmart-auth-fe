@@ -1,9 +1,15 @@
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { Button } from "~/shared/components/ui/button";
-import { postLoginRedirectPath } from "../post-login-redirect";
+import {
+  appendRedirectParam,
+  resolvePostAuthRedirect,
+} from "~/modules/auth/presentation/redirect-target";
 
 export function MfaOfferPage() {
+  const [searchParams] = useSearchParams();
+  const redirectTarget = resolvePostAuthRedirect(searchParams.get("redirect"));
+
   return (
     <AuthCard
       title="Secure your account"
@@ -14,16 +20,13 @@ export function MfaOfferPage() {
           You can enable MFA from your account settings.
         </p>
         <Button asChild className="w-full">
-          <Link to="/settings/security">Go to security settings</Link>
-        </Button>
-        <p className="text-muted-foreground text-sm">
-          <Link
-            to={postLoginRedirectPath()}
-            className="hover:text-primary font-medium underline underline-offset-4"
-          >
-            Skip for now
+          <Link to={appendRedirectParam("/settings/security/mfa", redirectTarget)}>
+            Go to security settings
           </Link>
-        </p>
+        </Button>
+        <Button asChild className="w-full" variant="outline">
+          <a href={redirectTarget}>Continue to application</a>
+        </Button>
       </div>
     </AuthCard>
   );

@@ -69,7 +69,7 @@ async function request<T>(
       ...(bearerToken ? { Authorization: `Bearer ${bearerToken}` } : {}),
       ...headers,
     },
-    credentials: "same-origin",
+    credentials: "include",
     body: body !== undefined ? JSON.stringify(body) : undefined,
     ...rest,
   });

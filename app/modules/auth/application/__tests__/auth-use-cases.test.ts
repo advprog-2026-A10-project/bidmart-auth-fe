@@ -75,16 +75,20 @@ describe("RegisterUseCase", () => {
     repo.register.mockResolvedValue({ message: "Check your email." });
 
     const result = await useCase.execute({
-      name: "Alice",
+      firstName: "Alice",
+      lastName: "Johnson",
       email: "alice@example.com",
       password: "secret123",
+      confirmPassword: "secret123",
     });
 
     expect(result.message).toBe("Check your email.");
     expect(repo.register).toHaveBeenCalledWith({
-      name: "Alice",
+      firstName: "Alice",
+      lastName: "Johnson",
       email: "alice@example.com",
       password: "secret123",
+      confirmPassword: "secret123",
     });
   });
 });

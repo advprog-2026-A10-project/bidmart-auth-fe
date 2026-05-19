@@ -4,6 +4,7 @@ const MFA_TICKET_TTL_MS = 5 * 60 * 1000;
 export type MfaTicketState = {
   ticket: string;
   mfaType: "totp" | "email";
+  redirectTarget?: string;
 };
 
 type StoredMfaTicket = MfaTicketState & {
@@ -16,7 +17,8 @@ function isMfaTicketState(value: unknown): value is MfaTicketState {
   return (
     typeof candidate.ticket === "string" &&
     candidate.ticket.length > 0 &&
-    (candidate.mfaType === "totp" || candidate.mfaType === "email")
+    (candidate.mfaType === "totp" || candidate.mfaType === "email") &&
+    (candidate.redirectTarget === undefined || typeof candidate.redirectTarget === "string")
   );
 }
 

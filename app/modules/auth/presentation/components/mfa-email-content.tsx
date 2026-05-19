@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { OtpInput } from "~/shared/components/ui/otp-input";
 import { Button } from "~/shared/components/ui/button";
@@ -17,8 +17,10 @@ export function MfaEmailContent({
   isSending = false,
 }: MfaEmailContentProps) {
   const codeLength = 6;
+  const resendCooldownSeconds = 30;
   const [code, setCode] = useState("");
   const [resendCount, setResendCount] = useState(0);
+  const [cooldown, setCooldown] = useState(resendCooldownSeconds);
 
   function handleCodeChange(value: string) {
     const sanitized = value.replace(/\D/g, "").slice(0, codeLength);
@@ -29,10 +31,28 @@ export function MfaEmailContent({
   }
 
   async function handleResend() {
+    if (cooldown > 0) return;
     setCode("");
     await onResend();
     setResendCount((count) => count + 1);
+    setCooldown(resendCooldownSeconds);
   }
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setCooldown((current) => {
+        if (current <= 1) {
+          window.clearInterval(timer);
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [cooldown]);
 
   return (
     <div className="space-y-4">
@@ -50,9 +70,9 @@ export function MfaEmailContent({
           variant="outline"
           size="sm"
           onClick={handleResend}
-          disabled={isSending}
+          disabled={isSending || cooldown > 0}
         >
-          {isSending ? "Sending..." : "Resend code"}
+          {isSending ? "Sending..." : cooldown > 0 ? `Resend code (${cooldown}s)` : "Resend code"}
         </Button>
         {resendCount > 0 ? (
           <p className="text-muted-foreground mt-2 text-xs">Code resent ({resendCount})</p>
