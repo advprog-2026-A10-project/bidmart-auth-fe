@@ -31,6 +31,8 @@ Backend:
 ```env
 APP_DATABASE_URL=postgres://postgres:postgres@localhost:5432/bidmart_auth
 APP_AUTH_JWT_SECRET=dev-only-change-me-dev-only-change-me
+APP_AUTH_ATTEMPT_LIMIT_MAX_FAILURES=5
+APP_AUTH_ATTEMPT_LIMIT_WINDOW_SECONDS=300
 APP_RESEND_API_KEY=re_xxx
 APP_RESEND_FROM_EMAIL=Bidmart <noreply@bidmart.bid>
 APP_VERIFY_EMAIL_URL_BASE=http://127.0.0.1:5173/auth/verify-email?token=
@@ -93,8 +95,17 @@ The backend must not set auth cookies and must not accept a cookie fallback for 
 
 - Route: `/login`
 - API: `POST /auth/login`
-- Normal branch: `{ requiresMfa: false, user, accessToken }`, then navigate to `/posts`.
+- Normal branch: `{ requiresMfa: false, user, accessToken }`, then navigate to `/settings/profile` unless `VITE_AUTH_SUCCESS_REDIRECT_PATH` is configured.
 - MFA branch: `{ requiresMfa: true, ticket, mfaType }`, then navigate to `/auth/mfa` with router state. The MFA gate stores the ticket out of the URL and redirects to `/auth/mfa/totp` or `/auth/mfa/email`.
+- Failed login and MFA verification attempts are throttled server-side. The default production-ready setting is 5 failures per key within 300 seconds, returning `429` with a JSON `message`.
+
+### Token Validation For Other Services
+
+- API: `GET /auth/me`
+- Request: `Authorization: Bearer <accessToken>`
+- Success: `{ user }`, using the same public user shape returned by login.
+- Failure: `401 { "message": "Unauthorized." }`
+- The endpoint validates the JWT and persisted session through the same authenticated-user path as `/settings/*`; other services should call this endpoint instead of sharing or decoding the Auth BE JWT secret.
 
 ### Register and Email Verification
 
@@ -178,6 +189,7 @@ Settings MFA setup, verification, and disable requests must include `currentPass
 | 401         | `NetworkError`; wrong current password remaps to `InvalidCurrentPasswordError`.                                  |
 | 404         | `NotFoundError`.                                                                                                 |
 | 410         | `GoneError`; reset password remaps to `TokenExpiredError`, MFA auth remaps to `MfaExpiredError`.                 |
+| 429         | `NetworkError`; callers should show the backend `message` and let the user wait before retrying.                 |
 | 422         | `ValidationError`.                                                                                               |
 
 All non-2xx responses should include a JSON `message`; validation responses should include field errors.
@@ -186,11 +198,13 @@ All non-2xx responses should include a JSON `message`; validation responses shou
 
 - [ ] `VITE_API_BASE_URL` points to the backend.
 - [ ] Backend CORS allows the frontend origin and `Authorization` header.
+- [ ] Other services validate Auth-issued Bearer tokens through `GET /auth/me`.
 - [ ] `POST /auth/register` creates an unverified user and sends verification through Resend.
 - [ ] `POST /auth/resend-verification` enforces cooldown and returns a non-enumerating response.
 - [ ] `POST /auth/verify-email` handles success, expired, and invalid tokens.
 - [ ] `POST /auth/login` blocks unverified users and returns either normal success or MFA-required branch.
 - [ ] MFA verification redeems the MFA ticket before issuing an access token.
+- [ ] Login and MFA verification return `429` after repeated failed attempts in the configured server-side window.
 - [ ] Forgot password sends a Resend email and does not leak account existence.
 - [ ] Reset password tokens are hashed, expiring, and single-use.
 - [ ] Settings MFA setup/verify/disable flows require authenticated Bearer requests.

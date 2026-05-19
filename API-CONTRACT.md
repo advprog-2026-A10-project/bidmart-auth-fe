@@ -26,6 +26,7 @@ The frontend validates all responses with Zod schemas. Non-2xx responses must re
 - **401**: Unauthorized or invalid current password/credentials.
 - **404**: Resource not found (e.g., session ID does not exist).
 - **410**: Token or MFA ticket/code has expired.
+- **429**: Too many failed login/MFA attempts in the configured server-side window.
 - **422**: Validation error (requires the `errors` field map).
 
 ## 3. Auth Endpoints (`/auth/*`)
@@ -36,6 +37,7 @@ The frontend validates all responses with Zod schemas. Non-2xx responses must re
 | POST   | `/auth/register`            | `RegisterDTO`           | `registerApiSchema`              | Returns user and success message    |
 | POST   | `/auth/verify-email`        | `VerifyEmailDTO`        | `messageApiSchema`               | Verifies account via token          |
 | POST   | `/auth/resend-verification` | `ResendVerificationDTO` | `messageApiSchema`               | Re-triggers verification email      |
+| GET    | `/auth/me`                  | none                    | `{ user: User }`                  | Validates Bearer token/session      |
 | POST   | `/auth/forgot-password`     | `ForgotPasswordDTO`     | `messageApiSchema`               | Sends password reset link           |
 | POST   | `/auth/reset-password`      | `ResetPasswordDTO`      | `messageApiSchema`               | Updates password via token          |
 | POST   | `/auth/mfa/send-email`      | `SendMfaEmailDTO`       | `messageApiSchema`               | Sends MFA code to registered email  |
@@ -128,6 +130,27 @@ Request:
 {
   "ticket": "mfa-ticket-123",
   "code": "123456"
+}
+```
+
+#### GET `/auth/me`
+
+Request:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+Success:
+
+```json
+{
+  "user": {
+    "id": "user-1",
+    "name": "Alice",
+    "email": "alice@example.com",
+    "emailVerified": true
+  }
 }
 ```
 
@@ -311,6 +334,7 @@ type UpdateNotificationPreferencesDTO = {
 
 - **404** -> `NotFoundError`
 - **410** -> `GoneError`
+- **429** -> `NetworkError`
 - **422** -> `ValidationError`
 
 ### Auth-Specific Remapping
