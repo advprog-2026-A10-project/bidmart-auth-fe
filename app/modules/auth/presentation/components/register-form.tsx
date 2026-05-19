@@ -16,7 +16,11 @@ import { PasswordInput } from "./password-input";
 
 export const registerFormSchema = z
   .object({
-    name: z.string().min(1, "Name is required.").max(100, "Name must be 100 characters or less."),
+    firstName: z
+      .string()
+      .min(1, "First name is required.")
+      .max(100, "First name must be 100 characters or less."),
+    lastName: z.string().max(100, "Last name must be 100 characters or less.").optional(),
     email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
     password: z
       .string()
@@ -39,7 +43,7 @@ interface RegisterFormProps {
 export function RegisterForm({ onSubmit, isSubmitting = false }: RegisterFormProps) {
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { firstName: "", lastName: "", email: "", password: "", confirmPassword: "" },
     mode: "onBlur",
     reValidateMode: "onSubmit",
   });
@@ -49,12 +53,26 @@ export function RegisterForm({ onSubmit, isSubmitting = false }: RegisterFormPro
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <FormField
           control={form.control}
-          name="name"
+          name="firstName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder="Your name" autoComplete="name" {...field} />
+                <Input placeholder="Your first name" autoComplete="given-name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="lastName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Last Name (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="Your last name" autoComplete="family-name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

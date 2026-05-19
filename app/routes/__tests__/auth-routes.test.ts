@@ -23,12 +23,14 @@ describe("auth routes", () => {
     expect(paths).toEqual(
       expect.arrayContaining([
         "register",
+        "auth/register",
         "auth/check-email",
         "auth/verify-email",
         "auth/verify-email/success",
         "auth/verify-email/expired",
         "auth/verify-email/invalid",
         "login",
+        "auth/login",
         "auth/forgot-password",
         "auth/forgot-password/sent",
         "forgot-password",

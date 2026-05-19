@@ -13,7 +13,13 @@ export type MfaLoginResult =
  */
 export interface IAuthRepository {
   login(credentials: { email: string; password: string }): Promise<MfaLoginResult>;
-  register(data: { name: string; email: string; password: string }): Promise<{ message: string }>;
+  register(data: {
+    firstName: string;
+    lastName?: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }): Promise<{ message: string }>;
   verifyEmail(data: { token: string }): Promise<{ message: string }>;
   resendVerification(data: { email: string }): Promise<{ message: string }>;
   logout(): Promise<void>;

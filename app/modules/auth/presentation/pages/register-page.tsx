@@ -10,9 +10,11 @@ export function RegisterPage() {
 
   async function handleSubmit(values: RegisterFormValues) {
     await registerMutation.mutateAsync({
-      name: values.name,
+      firstName: values.firstName,
+      lastName: values.lastName?.trim() || undefined,
       email: values.email,
       password: values.password,
+      confirmPassword: values.confirmPassword,
     });
     void navigate(`/auth/check-email?email=${encodeURIComponent(values.email)}`);
   }

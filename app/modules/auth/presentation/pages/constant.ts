@@ -42,9 +42,11 @@ export const AUTH_PAGE_MOCK_PAYLOADS = {
   },
   register: {
     request: {
-      name: "Alice",
+      firstName: "Alice",
+      lastName: "Johnson",
       email: "alice@example.com",
       password: "secret123",
+      confirmPassword: "secret123",
     } satisfies RegisterDTO,
     response: {
       success: {

@@ -4,9 +4,11 @@ export type LoginDTO = {
 };
 
 export type RegisterDTO = {
-  name: string;
+  firstName: string;
+  lastName?: string;
   email: string;
   password: string;
+  confirmPassword: string;
 };
 
 export type VerifyEmailDTO = {

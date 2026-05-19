@@ -5,10 +5,15 @@ import { MfaTotpContent } from "../components/mfa-totp-content";
 import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
 import { clearMfaTicket, readMfaTicket } from "../mfa-ticket-storage";
 import { useVerifyMfaTotpMutation } from "../hooks/use-verify-mfa-totp-mutation";
+import {
+  redirectToTarget,
+  resolvePostAuthRedirect,
+} from "~/modules/auth/presentation/redirect-target";
 
 export function MfaTotpPage() {
   const ticketState = readMfaTicket();
   const ticket = ticketState?.mfaType === "totp" ? ticketState.ticket : null;
+  const redirectTarget = resolvePostAuthRedirect(ticketState?.redirectTarget ?? null);
   const navigate = useNavigate();
   const verifyMfaTotp = useVerifyMfaTotpMutation();
 
@@ -25,7 +30,7 @@ export function MfaTotpPage() {
     try {
       await verifyMfaTotp.mutateAsync({ ticket: mfaTicket, code });
       clearMfaTicket();
-      void navigate("/posts");
+      redirectToTarget(redirectTarget);
     } catch (error) {
       if (error instanceof MfaExpiredError) {
         clearMfaTicket();
