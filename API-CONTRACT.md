@@ -324,7 +324,7 @@ type UpdateNotificationPreferencesDTO = {
 
 - **Profile User**: `{ id: string; name: string; email: string; address: string; postalCode: string }`
 - **Session**: `{ id: string; device: string; browser: string; os: string; ip: string; location: string; lastActive: string; isCurrent: boolean }`
-- **MFA Status**: `{ emailEnabled: boolean; totpEnabled: boolean }`
+- **MFA Status**: `{ mfaEnabled: boolean; mfaType: "totp" | "email" | null }`
 - **TOTP Setup**: `{ setupTicket: string; secret: string; otpauthUrl: string }`
 - **Notification Preferences**: `{ emailNotifications: boolean; pushNotifications: boolean; marketingEmails: boolean; securityAlerts: boolean }`
 
@@ -390,4 +390,4 @@ type UpdateNotificationPreferencesDTO = {
 - [ ] Required status codes are respected (`400`, `401`, `404`, `410`, `422`).
 - [ ] `PUT /settings/notifications` accepts the wrapped body `{ preferences: ... }`.
 - [ ] TOTP setup returns `setupTicket`, `secret`, and `otpauthUrl`.
-- [ ] MFA status shape exactly matches (`emailEnabled`, `totpEnabled`).
+- [ ] MFA status shape exactly matches (`mfaEnabled`, `mfaType`).
