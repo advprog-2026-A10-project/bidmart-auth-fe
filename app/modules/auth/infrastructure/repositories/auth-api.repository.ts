@@ -78,8 +78,12 @@ export class AuthApiRepository implements IAuthRepository {
   }
 
   async logout(): Promise<void> {
-    clearAccessToken();
-    clearCurrentUser();
+    try {
+      await apiClient.post<void>(`${this.basePath}/logout`);
+    } finally {
+      clearAccessToken();
+      clearCurrentUser();
+    }
   }
 
   // ── Password reset ──────────────────────────────────────────────────────────

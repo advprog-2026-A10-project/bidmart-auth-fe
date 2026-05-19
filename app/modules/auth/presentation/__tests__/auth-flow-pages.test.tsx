@@ -120,7 +120,7 @@ describe("auth page flows", () => {
     locationStateMock.mockReturnValue(null);
   });
 
-  it("redirects normal login success to posts through the login hook", async () => {
+  it("redirects normal login success to an existing settings route through the login hook", async () => {
     const user = userEvent.setup();
     loginMutateAsyncMock.mockResolvedValue({
       id: "user-1",
@@ -139,7 +139,7 @@ describe("auth page flows", () => {
         email: "alice@example.com",
         password: "secret123",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/posts");
+      expect(navigateMock).toHaveBeenCalledWith("/settings/profile");
     });
   });
 
@@ -277,7 +277,7 @@ describe("auth page flows", () => {
         ticket: "ticket-123",
         code: "123456",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/posts");
+      expect(navigateMock).toHaveBeenCalledWith("/settings/profile");
     });
   });
 
@@ -301,7 +301,7 @@ describe("auth page flows", () => {
         ticket: "ticket-123",
         code: "654321",
       });
-      expect(navigateMock).toHaveBeenCalledWith("/posts");
+      expect(navigateMock).toHaveBeenCalledWith("/settings/profile");
     });
   });
 

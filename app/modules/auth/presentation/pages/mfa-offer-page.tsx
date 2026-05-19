@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { Button } from "~/shared/components/ui/button";
+import { postLoginRedirectPath } from "../post-login-redirect";
 
 export function MfaOfferPage() {
   return (
@@ -16,7 +17,10 @@ export function MfaOfferPage() {
           <Link to="/settings/security">Go to security settings</Link>
         </Button>
         <p className="text-muted-foreground text-sm">
-          <Link to="/posts" className="hover:text-primary font-medium underline underline-offset-4">
+          <Link
+            to={postLoginRedirectPath()}
+            className="hover:text-primary font-medium underline underline-offset-4"
+          >
             Skip for now
           </Link>
         </p>

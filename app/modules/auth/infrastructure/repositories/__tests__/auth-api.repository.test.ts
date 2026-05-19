@@ -21,6 +21,25 @@ describe("AuthApiRepository logout", () => {
     clearCurrentUser();
   });
 
+  it("calls the backend logout endpoint and clears local auth state", async () => {
+    setAccessToken("memory-token");
+    setCurrentUser(
+      createUser({
+        id: "user-1",
+        name: "Alice",
+        email: "alice@example.com",
+        emailVerified: true,
+      }),
+    );
+    mockedApiClient.post.mockResolvedValue(undefined);
+
+    await expect(new AuthApiRepository().logout()).resolves.toBeUndefined();
+
+    expect(mockedApiClient.post).toHaveBeenCalledWith("/auth/logout");
+    expect(getAccessToken()).toBeNull();
+    expect(getCurrentUser()).toBeNull();
+  });
+
   it("clears local auth state even when the backend logout endpoint fails", async () => {
     setAccessToken("memory-token");
     setCurrentUser(
@@ -33,8 +52,9 @@ describe("AuthApiRepository logout", () => {
     );
     mockedApiClient.post.mockRejectedValue(new NetworkError("Not found", 404));
 
-    await expect(new AuthApiRepository().logout()).resolves.toBeUndefined();
+    await expect(new AuthApiRepository().logout()).rejects.toBeInstanceOf(NetworkError);
 
+    expect(mockedApiClient.post).toHaveBeenCalledWith("/auth/logout");
     expect(getAccessToken()).toBeNull();
     expect(getCurrentUser()).toBeNull();
   });

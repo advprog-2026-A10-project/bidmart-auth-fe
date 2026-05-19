@@ -6,6 +6,7 @@ import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
 import { clearMfaTicket, readMfaTicket } from "../mfa-ticket-storage";
 import { useSendMfaEmailMutation } from "../hooks/use-send-mfa-email-mutation";
 import { useVerifyMfaEmailMutation } from "../hooks/use-verify-mfa-email-mutation";
+import { postLoginRedirectPath } from "../post-login-redirect";
 
 export function MfaEmailPage() {
   const ticketState = readMfaTicket();
@@ -34,7 +35,7 @@ export function MfaEmailPage() {
     try {
       await verifyMfaEmail.mutateAsync({ ticket: mfaTicket, code });
       clearMfaTicket();
-      void navigate("/posts");
+      void navigate(postLoginRedirectPath());
     } catch (error) {
       if (error instanceof MfaExpiredError) {
         clearMfaTicket();

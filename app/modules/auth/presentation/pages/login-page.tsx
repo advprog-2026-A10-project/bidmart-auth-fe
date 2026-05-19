@@ -5,6 +5,7 @@ import type { LoginFormValues } from "../components/login-form";
 import { useLoginMutation } from "../hooks/use-login-mutation";
 import { MfaRequiredError } from "~/modules/auth/domain/errors/auth-errors";
 import { storeMfaTicket } from "../mfa-ticket-storage";
+import { postLoginRedirectPath } from "../post-login-redirect";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ export function LoginPage() {
   async function handleSubmit(values: LoginFormValues) {
     try {
       await loginMutation.mutateAsync({ email: values.email, password: values.password });
-      void navigate("/posts");
+      void navigate(postLoginRedirectPath());
     } catch (error) {
       if (error instanceof MfaRequiredError) {
         const state = { ticket: error.ticket, mfaType: error.mfaType };
