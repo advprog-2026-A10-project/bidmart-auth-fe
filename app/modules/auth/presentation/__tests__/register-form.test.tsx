@@ -51,7 +51,9 @@ describe("RegisterForm", () => {
     fireEvent.change(screen.getByLabelText(/^first name/i), { target: { value: "Alice" } });
     fireEvent.change(screen.getByLabelText(/^email/i), { target: { value: "alice@example.com" } });
     fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: "secret123" } });
-    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: "different" } });
+    fireEvent.change(screen.getByLabelText(/confirm password/i), {
+      target: { value: "different" },
+    });
     await user.click(screen.getByRole("button", { name: /create account/i }));
 
     expect(await screen.findByText(/passwords do not match/i)).toBeInTheDocument();

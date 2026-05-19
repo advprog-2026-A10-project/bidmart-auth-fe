@@ -39,4 +39,3 @@ VITE_ALLOWED_REDIRECT_ORIGINS=http://localhost:5174,http://localhost:5175
 - Do not persist tokens in `localStorage`/`sessionStorage`.
 - MFA ticket storage (`bidmart:mfa-ticket`) is short-lived and contains only challenge ticket metadata.
 - Treat `auth_session` as opaque and backend-managed.
-

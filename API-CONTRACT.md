@@ -41,7 +41,12 @@ Response (no MFA):
 ```json
 {
   "requiresMfa": false,
-  "user": { "id": "...", "name": "Alice Johnson", "email": "alice@example.com", "emailVerified": true },
+  "user": {
+    "id": "...",
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "emailVerified": true
+  },
   "accessToken": "..."
 }
 ```
@@ -57,7 +62,9 @@ Response (MFA required):
 ```
 
 ### POST `/auth/mfa/send-email`
+
 ### POST `/auth/mfa/verify-email`
+
 ### POST `/auth/mfa/verify-totp`
 
 - `verify-*` responses include `{ user, accessToken }`.
@@ -96,4 +103,3 @@ Response (MFA required):
 - `POST /settings/security/mfa/email/verify`
 - `POST /settings/security/mfa/disable`
 - `GET|PUT /settings/notifications`
-
