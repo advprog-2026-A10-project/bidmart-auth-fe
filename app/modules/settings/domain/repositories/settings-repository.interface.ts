@@ -4,8 +4,8 @@ import type {
   SetupMfaEmailDTO,
   SetupMfaTotpDTO,
   SetupMfaTotpResultDTO,
-  VerifyMfaEmailDTO,
-  VerifyMfaTotpDTO,
+  VerifySetupMfaEmailDTO,
+  VerifySetupMfaTotpDTO,
 } from "~/modules/settings/application/dtos/settings.dto";
 
 export interface ISettingsRepository {
@@ -24,9 +24,9 @@ export interface ISettingsRepository {
   }): Promise<{ message: string }>;
   getMfaStatus(): Promise<MfaStatus>;
   setupMfaTotp(data: SetupMfaTotpDTO): Promise<SetupMfaTotpResultDTO>;
-  verifyMfaTotp(data: VerifyMfaTotpDTO): Promise<{ message: string }>;
+  verifyMfaTotp(data: VerifySetupMfaTotpDTO): Promise<{ message: string }>;
   setupMfaEmail(data: SetupMfaEmailDTO): Promise<{ message: string }>;
-  verifyMfaEmail(data: VerifyMfaEmailDTO): Promise<{ message: string }>;
+  verifyMfaEmail(data: VerifySetupMfaEmailDTO): Promise<{ message: string }>;
   disableMfa(data: DisableMfaDTO): Promise<{ message: string }>;
   getNotificationPreferences(): Promise<NotificationPreferences>;
   updateNotificationPreferences(

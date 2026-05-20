@@ -27,7 +27,6 @@ import { AuthApiMapper } from "../api/auth-api.mapper";
  * OCP: new data sources extend IAuthRepository without modifying use cases.
  *
  * All responses are validated against Zod schemas at this boundary (fail-fast).
- * Mock API payloads are used for new endpoints until backend is ready.
  */
 export class AuthApiRepository implements IAuthRepository {
   private readonly basePath = "/auth";
@@ -92,24 +91,12 @@ export class AuthApiRepository implements IAuthRepository {
 
   // ── Password reset ──────────────────────────────────────────────────────────
 
-  /**
-   * Mock contract: POST /auth/forgot-password
-   * Body:    { email: string }
-   * Success: { message: string }
-   */
   async forgotPassword(data: { email: string }): Promise<{ message: string }> {
     const raw = await apiClient.post<unknown>(`${this.basePath}/forgot-password`, data);
     const validated = messageApiSchema.parse(raw);
     return { message: validated.message };
   }
 
-  /**
-   * Mock contract: POST /auth/reset-password
-   * Body:    { token: string; password: string }
-   * Success: { message: string }
-   * 410:     GoneError  → re-thrown as TokenExpiredError
-   * 400:     NetworkError (message: "invalid token") → re-thrown as InvalidResetTokenError
-   */
   async resetPassword(data: { token: string; password: string }): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/reset-password`, data);
@@ -131,12 +118,6 @@ export class AuthApiRepository implements IAuthRepository {
 
   // ── MFA ─────────────────────────────────────────────────────────────────────
 
-  /**
-   * Mock contract: POST /auth/mfa/verify-totp
-   * Body:    { ticket: string; code: string }
-   * Success: { user: UserApiResponse; accessToken: string }
-   * 410:     GoneError → re-thrown as MfaExpiredError
-   */
   async verifyMfaTotp(data: { ticket: string; code: string }): Promise<User> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/verify-totp`, data);
@@ -151,23 +132,12 @@ export class AuthApiRepository implements IAuthRepository {
     }
   }
 
-  /**
-   * Mock contract: POST /auth/mfa/send-email
-   * Body:    { ticket: string }
-   * Success: { message: string }
-   */
   async sendMfaEmail(data: { ticket: string }): Promise<{ message: string }> {
     const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/send-email`, data);
     const validated = messageApiSchema.parse(raw);
     return { message: validated.message };
   }
 
-  /**
-   * Mock contract: POST /auth/mfa/verify-email
-   * Body:    { ticket: string; code: string }
-   * Success: { user: UserApiResponse; accessToken: string }
-   * 410:     GoneError → re-thrown as MfaExpiredError
-   */
   async verifyMfaEmail(data: { ticket: string; code: string }): Promise<User> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/verify-email`, data);

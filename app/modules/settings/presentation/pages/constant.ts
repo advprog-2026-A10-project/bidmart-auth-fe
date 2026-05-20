@@ -5,8 +5,8 @@ import type {
   SetupMfaTotpResultDTO,
   UpdateNotificationPreferencesDTO,
   UpdateProfileDTO,
-  VerifyMfaEmailDTO,
-  VerifyMfaTotpDTO,
+  VerifySetupMfaEmailDTO,
+  VerifySetupMfaTotpDTO,
 } from "~/modules/settings/application/dtos/settings.dto";
 import type { UserProfileDTO } from "~/modules/settings/application/dtos/user-profile.dto";
 import type { MfaStatus } from "~/modules/settings/domain/entities/mfa-status.entity";
@@ -120,7 +120,7 @@ export const SETTINGS_PAGE_MOCK_PAYLOADS = {
       verify: {
         code: "123456",
         currentPassword: "currentPass123",
-      } satisfies VerifyMfaEmailDTO,
+      } satisfies VerifySetupMfaEmailDTO,
     },
     response: {
       setup: {
@@ -137,7 +137,7 @@ export const SETTINGS_PAGE_MOCK_PAYLOADS = {
         setupTicket: "setup-ticket",
         code: "123456",
         currentPassword: "currentPass123",
-      } satisfies VerifyMfaTotpDTO,
+      } satisfies VerifySetupMfaTotpDTO,
     },
     response: {
       setup: {

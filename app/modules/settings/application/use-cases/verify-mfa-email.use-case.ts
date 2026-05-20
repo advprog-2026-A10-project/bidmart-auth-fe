@@ -1,10 +1,10 @@
 import type { ISettingsRepository } from "~/modules/settings/domain/repositories/settings-repository.interface";
-import type { VerifyMfaEmailDTO } from "../dtos/settings.dto";
+import type { VerifySetupMfaEmailDTO } from "../dtos/settings.dto";
 
-export class VerifyMfaEmailUseCase {
+export class VerifySetupMfaEmailUseCase {
   constructor(private readonly settingsRepository: ISettingsRepository) {}
 
-  async execute(dto: VerifyMfaEmailDTO): Promise<{ message: string }> {
+  async execute(dto: VerifySetupMfaEmailDTO): Promise<{ message: string }> {
     return this.settingsRepository.verifyMfaEmail(dto);
   }
 }

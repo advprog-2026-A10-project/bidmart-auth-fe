@@ -9,7 +9,7 @@ export type ChangePasswordDTO = {
   newPassword: string;
 };
 
-export type VerifyMfaTotpDTO = {
+export type VerifySetupMfaTotpDTO = {
   setupTicket: string;
   code: string;
   currentPassword: string;
@@ -30,7 +30,7 @@ export type SetupMfaEmailDTO = {
   currentPassword: string;
 };
 
-export type VerifyMfaEmailDTO = {
+export type VerifySetupMfaEmailDTO = {
   code: string;
   currentPassword: string;
 };

@@ -7,9 +7,9 @@ import { RevokeAllSessionsUseCase } from "~/modules/settings/application/use-cas
 import { ChangePasswordUseCase } from "~/modules/settings/application/use-cases/change-password.use-case";
 import { GetMfaStatusUseCase } from "~/modules/settings/application/use-cases/get-mfa-status.use-case";
 import { SetupMfaTotpUseCase } from "~/modules/settings/application/use-cases/setup-mfa-totp.use-case";
-import { VerifyMfaTotpUseCase } from "~/modules/settings/application/use-cases/verify-mfa-totp.use-case";
+import { VerifySetupMfaTotpUseCase } from "~/modules/settings/application/use-cases/verify-mfa-totp.use-case";
 import { SetupMfaEmailUseCase } from "~/modules/settings/application/use-cases/setup-mfa-email.use-case";
-import { VerifyMfaEmailUseCase } from "~/modules/settings/application/use-cases/verify-mfa-email.use-case";
+import { VerifySetupMfaEmailUseCase } from "~/modules/settings/application/use-cases/verify-mfa-email.use-case";
 import { DisableMfaUseCase } from "~/modules/settings/application/use-cases/disable-mfa.use-case";
 import { GetNotificationPreferencesUseCase } from "~/modules/settings/application/use-cases/get-notification-preferences.use-case";
 import { UpdateNotificationPreferencesUseCase } from "~/modules/settings/application/use-cases/update-notification-preferences.use-case";
@@ -23,9 +23,9 @@ export type SettingsUseCases = {
   changePassword: ChangePasswordUseCase;
   getMfaStatus: GetMfaStatusUseCase;
   setupMfaTotp: SetupMfaTotpUseCase;
-  verifyMfaTotp: VerifyMfaTotpUseCase;
+  verifyMfaTotp: VerifySetupMfaTotpUseCase;
   setupMfaEmail: SetupMfaEmailUseCase;
-  verifyMfaEmail: VerifyMfaEmailUseCase;
+  verifyMfaEmail: VerifySetupMfaEmailUseCase;
   disableMfa: DisableMfaUseCase;
   getNotificationPreferences: GetNotificationPreferencesUseCase;
   updateNotificationPreferences: UpdateNotificationPreferencesUseCase;
@@ -42,9 +42,9 @@ export function createSettingsUseCases(): SettingsUseCases {
     changePassword: new ChangePasswordUseCase(repository),
     getMfaStatus: new GetMfaStatusUseCase(repository),
     setupMfaTotp: new SetupMfaTotpUseCase(repository),
-    verifyMfaTotp: new VerifyMfaTotpUseCase(repository),
+    verifyMfaTotp: new VerifySetupMfaTotpUseCase(repository),
     setupMfaEmail: new SetupMfaEmailUseCase(repository),
-    verifyMfaEmail: new VerifyMfaEmailUseCase(repository),
+    verifyMfaEmail: new VerifySetupMfaEmailUseCase(repository),
     disableMfa: new DisableMfaUseCase(repository),
     getNotificationPreferences: new GetNotificationPreferencesUseCase(repository),
     updateNotificationPreferences: new UpdateNotificationPreferencesUseCase(repository),

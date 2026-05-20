@@ -40,11 +40,6 @@ export const messageApiSchema = z.object({
 });
 
 // --- MFA Status ---
-export const mfaStatusApiSchema = z.object({
-  mfaEnabled: z.boolean(),
-  mfaType: z.enum(["email", "totp"]).nullable(),
-});
-
 export const getMfaStatusApiSchema = z.object({
   mfaEnabled: z.boolean(),
   mfaType: z.enum(["email", "totp"]).nullable(),
@@ -73,6 +68,6 @@ export const getNotificationPreferencesApiSchema = z.object({
 // --- Types ---
 export type UserProfileApiResponse = z.infer<typeof userProfileApiSchema>;
 export type SessionApiResponse = z.infer<typeof sessionApiSchema>;
-export type MfaStatusApiResponse = z.infer<typeof mfaStatusApiSchema>;
+export type MfaStatusApiResponse = z.infer<typeof getMfaStatusApiSchema>;
 export type SetupMfaTotpApiResponse = z.infer<typeof setupMfaTotpApiSchema>;
 export type NotificationPreferencesApiResponse = z.infer<typeof notificationPreferencesApiSchema>;

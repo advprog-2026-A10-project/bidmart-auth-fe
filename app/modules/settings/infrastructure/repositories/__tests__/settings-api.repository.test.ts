@@ -101,7 +101,7 @@ describe("SettingsApiRepository MFA contract", () => {
     await repository.disableMfa({ currentPassword: "currentPass123" });
 
     expect(mockedApiClient.post).toHaveBeenCalledWith("/settings/security/mfa/disable", {
-      password: "currentPass123",
+      currentPassword: "currentPass123",
     });
   });
 });

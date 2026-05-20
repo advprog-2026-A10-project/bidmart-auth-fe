@@ -9,8 +9,8 @@ import type {
   SetupMfaEmailDTO,
   SetupMfaTotpDTO,
   SetupMfaTotpResultDTO,
-  VerifyMfaEmailDTO,
-  VerifyMfaTotpDTO,
+  VerifySetupMfaEmailDTO,
+  VerifySetupMfaTotpDTO,
 } from "~/modules/settings/application/dtos/settings.dto";
 import {
   InvalidCurrentPasswordError,
@@ -111,7 +111,7 @@ export class SettingsApiRepository implements ISettingsRepository {
     };
   }
 
-  async verifyMfaTotp(data: VerifyMfaTotpDTO): Promise<{ message: string }> {
+  async verifyMfaTotp(data: VerifySetupMfaTotpDTO): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/totp/verify`, data);
       const validated = messageApiSchema.parse(raw);
@@ -130,7 +130,7 @@ export class SettingsApiRepository implements ISettingsRepository {
     return { message: validated.message };
   }
 
-  async verifyMfaEmail(data: VerifyMfaEmailDTO): Promise<{ message: string }> {
+  async verifyMfaEmail(data: VerifySetupMfaEmailDTO): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/email/verify`, data);
       const validated = messageApiSchema.parse(raw);
@@ -146,7 +146,7 @@ export class SettingsApiRepository implements ISettingsRepository {
   async disableMfa(data: DisableMfaDTO): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/security/mfa/disable`, {
-        password: data.currentPassword,
+        currentPassword: data.currentPassword,
       });
       const validated = messageApiSchema.parse(raw);
       return { message: validated.message };
