@@ -8,6 +8,7 @@ import type {
   MfaLoginResult,
 } from "~/modules/auth/domain/repositories/auth-repository.interface";
 import {
+  EmailNotVerifiedError,
   TokenExpiredError,
   InvalidResetTokenError,
   MfaExpiredError,
@@ -32,7 +33,16 @@ export class AuthApiRepository implements IAuthRepository {
   private readonly basePath = "/auth";
 
   async login(credentials: { email: string; password: string }): Promise<MfaLoginResult> {
-    const raw = await apiClient.post<unknown>(`${this.basePath}/login`, credentials);
+    let raw: unknown;
+    try {
+      raw = await apiClient.post<unknown>(`${this.basePath}/login`, credentials);
+    } catch (error) {
+      if (isEmailNotVerifiedError(error)) {
+        throw new EmailNotVerifiedError();
+      }
+      throw error;
+    }
+
     const validated = loginResponseApiSchema.parse(raw);
 
     if (validated.requiresMfa === true) {
@@ -151,4 +161,18 @@ export class AuthApiRepository implements IAuthRepository {
       throw error;
     }
   }
+}
+
+function isEmailNotVerifiedError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const statusCode =
+    "statusCode" in error ? (error as { statusCode?: number }).statusCode : undefined;
+  if (statusCode !== 403) {
+    return false;
+  }
+
+  return /email.*verif|verif.*email/i.test(error.message);
 }

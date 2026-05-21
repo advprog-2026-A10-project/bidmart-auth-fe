@@ -3,7 +3,10 @@ import { AuthCard } from "../components/auth-card";
 import { LoginForm } from "../components/login-form";
 import type { LoginFormValues } from "../components/login-form";
 import { useLoginMutation } from "../hooks/use-login-mutation";
-import { MfaRequiredError } from "~/modules/auth/domain/errors/auth-errors";
+import {
+  EmailNotVerifiedError,
+  MfaRequiredError,
+} from "~/modules/auth/domain/errors/auth-errors";
 import { storeMfaTicket } from "../mfa-ticket-storage";
 import {
   appendRedirectParam,
@@ -25,6 +28,12 @@ export function LoginPage() {
         const state = { ticket: error.ticket, mfaType: error.mfaType, redirectTarget };
         storeMfaTicket(state);
         void navigate("/auth/mfa", { state });
+        return;
+      }
+
+      if (error instanceof EmailNotVerifiedError) {
+        const email = values.email.trim();
+        void navigate(`/auth/check-email?email=${encodeURIComponent(email)}`);
       }
     }
   }

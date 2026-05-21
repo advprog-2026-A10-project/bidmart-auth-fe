@@ -5,7 +5,11 @@ import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router";
 import type * as ReactRouter from "react-router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MfaRequiredError, MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
+import {
+  EmailNotVerifiedError,
+  MfaExpiredError,
+  MfaRequiredError,
+} from "~/modules/auth/domain/errors/auth-errors";
 import { LoginPage } from "../pages/login-page";
 import { MfaEmailPage } from "../pages/mfa-email-page";
 import { MfaPage } from "../pages/mfa-page";
@@ -166,6 +170,22 @@ describe("auth page flows", () => {
       });
     });
     expect(sessionStorage.getItem("bidmart:mfa-ticket")).toContain("ticket-123");
+  });
+
+  it("redirects unverified-email login attempts to the check-email flow", async () => {
+    const user = userEvent.setup();
+    loginMutateAsyncMock.mockRejectedValue(new EmailNotVerifiedError());
+
+    renderWithProviders(<LoginPage />);
+    fillField(/email/i, "pending@example.com");
+    fillField("Password", "secret123");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() => {
+      expect(navigateMock).toHaveBeenCalledWith(
+        "/auth/check-email?email=pending%40example.com",
+      );
+    });
   });
 
   it("verifies email token and redirects to the /auth success route", async () => {

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NetworkError } from "~/shared/domain/errors/network-error";
+import { EmailNotVerifiedError } from "~/modules/auth/domain/errors/auth-errors";
 import { clearAccessToken, getAccessToken, setAccessToken } from "~/shared/infrastructure/auth";
 import { apiClient } from "~/shared/infrastructure/http/api-client";
 import { createUser } from "~/modules/auth/domain/entities/user";
@@ -64,6 +65,22 @@ describe("AuthApiRepository login", () => {
       ticket: "mfa-ticket-1",
       mfaType: "email",
     });
+
+    expect(getAccessToken()).toBeNull();
+    expect(getCurrentUser()).toBeNull();
+  });
+
+  it("maps a 403 unverified-email login response to EmailNotVerifiedError", async () => {
+    mockedApiClient.post.mockRejectedValue(
+      new NetworkError("Email must be verified before login.", 403),
+    );
+
+    await expect(
+      new AuthApiRepository().login({
+        email: "alice@example.com",
+        password: "correct-password",
+      }),
+    ).rejects.toBeInstanceOf(EmailNotVerifiedError);
 
     expect(getAccessToken()).toBeNull();
     expect(getCurrentUser()).toBeNull();
