@@ -47,7 +47,11 @@ export function readMfaTicket(state?: unknown): MfaTicketState | null {
       clearMfaTicket();
       return null;
     }
-    return { ticket: parsed.ticket, mfaType: parsed.mfaType };
+    return {
+      ticket: parsed.ticket,
+      mfaType: parsed.mfaType,
+      redirectTarget: parsed.redirectTarget,
+    };
   } catch {
     clearMfaTicket();
     return null;

@@ -1,19 +1,24 @@
-const FALLBACK_REDIRECT = String(import.meta.env.VITE_REDIRECT_URL ?? "/");
-const ALLOWED_REDIRECT_ORIGINS = String(import.meta.env.VITE_ALLOWED_REDIRECT_ORIGINS ?? "")
-  .split(",")
-  .map((origin: string) => origin.trim())
-  .filter((origin: string) => origin.length > 0);
+function fallbackRedirect(): string {
+  return String(import.meta.env.VITE_REDIRECT_URL ?? "/");
+}
+
+function configuredAllowedOrigins(): string[] {
+  return String(import.meta.env.VITE_ALLOWED_REDIRECT_ORIGINS ?? "")
+    .split(",")
+    .map((origin: string) => origin.trim())
+    .filter((origin: string) => origin.length > 0);
+}
 
 function resolveDefaultOrigin(): string | null {
   try {
-    return new URL(FALLBACK_REDIRECT).origin;
+    return new URL(fallbackRedirect()).origin;
   } catch {
     return null;
   }
 }
 
 function allowedOrigins(): Set<string> {
-  const origins = new Set(ALLOWED_REDIRECT_ORIGINS);
+  const origins = new Set(configuredAllowedOrigins());
   const fallbackOrigin = resolveDefaultOrigin();
   if (fallbackOrigin) origins.add(fallbackOrigin);
   return origins;
@@ -30,7 +35,7 @@ function normalizeAbsoluteHttpUrl(candidate: string): URL | null {
 }
 
 export function resolvePostAuthRedirect(rawRedirect: string | null): string {
-  const fallback = normalizeAbsoluteHttpUrl(FALLBACK_REDIRECT);
+  const fallback = normalizeAbsoluteHttpUrl(fallbackRedirect());
   if (!rawRedirect) return fallback?.toString() ?? "/";
 
   const candidate = normalizeAbsoluteHttpUrl(rawRedirect);

@@ -124,7 +124,7 @@ export default function MfaEmailSetupPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="flex gap-2">
+                  <div className="flex w-full gap-2">
                     <Button asChild variant="ghost" className="w-full">
                       <Link to="/settings/security/mfa">Cancel</Link>
                     </Button>

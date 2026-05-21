@@ -1,8 +1,32 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
+import { clientLogger, serializeError } from "~/shared/infrastructure/logger/client-logger";
 
 function makeQueryClient() {
   return new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        clientLogger.error("query_execution_failed", {
+          queryKey: query.queryKey,
+          meta: query.meta,
+          error: serializeError(error),
+        });
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error, _variables, _context, mutation) => {
+        clientLogger.error("mutation_execution_failed", {
+          mutationKey: mutation.options.mutationKey,
+          meta: mutation.meta,
+          error: serializeError(error),
+        });
+      },
+    }),
     defaultOptions: {
       queries: {
         // Don't refetch on window focus in development

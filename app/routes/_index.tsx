@@ -1,7 +1,7 @@
-import { redirect } from "react-router";
+import { loadAuthIndexRoute } from "~/modules/auth/infrastructure/public-auth-route-loader";
 
-export async function loader() {
-  return redirect("/login");
+export async function loader(args: Parameters<typeof loadAuthIndexRoute>[0]) {
+  return loadAuthIndexRoute(args);
 }
 
 export default function Index() {
