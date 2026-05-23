@@ -111,6 +111,8 @@ describe("settings MFA pages", () => {
       setupTicket: "setup-ticket",
       secret: "SECRET",
       otpauthUrl: "otpauth://totp/BidMart:alice@example.com?secret=SECRET&issuer=BidMart",
+      qrCodeUrl:
+        "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjwvc3ZnPg==",
     });
     verifyTotpMock.mockResolvedValue({ message: "enabled" });
 
@@ -118,6 +120,7 @@ describe("settings MFA pages", () => {
     await user.type(screen.getByLabelText(/current password/i), "currentPass123");
     await user.click(screen.getByRole("button", { name: /start setup/i }));
     expect(await screen.findByText("SECRET")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /authenticator app qr code/i })).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/verification code/i), "123456");
     await user.click(screen.getByRole("button", { name: /^verify$/i }));

@@ -55,7 +55,7 @@ export function MfaPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button asChild variant="outline" size="sm">
-              <Link to="/settings/security/mfa/disable">Go to disable flow</Link>
+              <Link to="/settings/security/mfa/disable">Disable MFA</Link>
             </Button>
           </CardContent>
         </Card>

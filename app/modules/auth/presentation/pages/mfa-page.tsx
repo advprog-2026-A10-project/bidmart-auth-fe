@@ -11,7 +11,7 @@ export function MfaPage() {
     const state = readMfaTicket(location.state);
 
     if (!state) {
-      navigate("/login", { replace: true });
+      navigate("/auth/login", { replace: true });
       return;
     }
 

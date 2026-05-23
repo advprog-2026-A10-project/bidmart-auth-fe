@@ -10,7 +10,7 @@ export function MfaExpiredPage() {
           Please log in again to request a new code.
         </p>
         <Button asChild className="w-full">
-          <Link to="/login">Back to sign in</Link>
+          <Link to="/auth/login">Back to sign in</Link>
         </Button>
       </div>
     </AuthCard>

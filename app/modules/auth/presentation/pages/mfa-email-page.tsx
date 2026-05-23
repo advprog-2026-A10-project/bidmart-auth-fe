@@ -3,18 +3,16 @@ import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaEmailContent } from "../components/mfa-email-content";
 import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
-import { clearMfaTicket, readMfaTicket } from "~/modules/auth/infrastructure/storage/mfa-ticket-storage";
+import {
+  clearMfaTicket,
+  readMfaTicket,
+} from "~/modules/auth/infrastructure/storage/mfa-ticket-storage";
 import { useSendMfaEmailMutation } from "../hooks/use-send-mfa-email-mutation";
 import { useVerifyMfaEmailMutation } from "../hooks/use-verify-mfa-email-mutation";
 import {
   redirectToTarget,
   resolvePostAuthRedirect,
 } from "~/modules/auth/infrastructure/navigation/redirect-target";
-
-// Backend enforces a 30-second cooldown between consecutive email-MFA sends
-// (see `policy.email_mfa_cooldown` in bidmart-auth-be). The client mirrors
-// that so the resend button is honest about when the user can retry.
-const RESEND_COOLDOWN_MS = 30_000;
 
 // Strict-Mode-safe de-dupe of the initial auto-send. React 19 / Strict Mode
 // double-invokes effects in development, which used to fire `sendMfaEmail`
@@ -31,31 +29,23 @@ export function MfaEmailPage() {
   const verifyMfaEmail = useVerifyMfaEmailMutation();
   const sendEmail = sendMfaEmail.mutateAsync;
 
-  // `cooldownUntil` is the timestamp at which the resend button is allowed
-  // to be clicked again. It starts as `null` (no cooldown) and is set every
-  // time a send settles — initial auto-send or manual resend.
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  // Bumped on each manual resend; MfaEmailContent resets its countdown on every increment.
+  // (The initial auto-send countdown starts from MfaEmailContent's initial state.)
+  const [cooldownSignal, setCooldownSignal] = useState(0);
   // Bumped on each verify failure to ask MfaEmailContent to clear the OTP
   // input so the user can retype without manually clearing.
   const [resetCodeSignal, setResetCodeSignal] = useState(0);
 
   useEffect(() => {
     if (!ticket) {
-      navigate("/login", { replace: true });
+      navigate("/auth/login", { replace: true });
       return;
     }
 
     if (autoSentTickets.has(ticket)) return;
     autoSentTickets.add(ticket);
 
-    void sendEmail({ ticket })
-      .catch(() => {
-        // Mutation hook already toasts; nothing to do here besides letting
-        // the cooldown kick in via finally below.
-      })
-      .finally(() => {
-        setCooldownUntil(Date.now() + RESEND_COOLDOWN_MS);
-      });
+    void sendEmail({ ticket }).catch(() => {});
   }, [sendEmail, ticket, navigate]);
 
   if (!ticket) return null;
@@ -79,10 +69,11 @@ export function MfaEmailPage() {
   }
 
   async function handleResend() {
+    setCooldownSignal((n) => n + 1);
     try {
       await sendMfaEmail.mutateAsync({ ticket: mfaTicket });
-    } finally {
-      setCooldownUntil(Date.now() + RESEND_COOLDOWN_MS);
+    } catch {
+      // error handled by the mutation hook's onError toast
     }
   }
 
@@ -93,7 +84,7 @@ export function MfaEmailPage() {
         onResend={handleResend}
         isSubmitting={verifyMfaEmail.isPending}
         isSending={sendMfaEmail.isPending}
-        cooldownUntil={cooldownUntil}
+        cooldownSignal={cooldownSignal}
         resetCodeSignal={resetCodeSignal}
       />
     </AuthCard>

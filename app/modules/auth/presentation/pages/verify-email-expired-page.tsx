@@ -27,7 +27,7 @@ export function VerifyEmailExpiredPage() {
 
           <p className="text-muted-foreground text-center text-sm">
             <Link
-              to="/login"
+              to="/auth/login"
               className="hover:text-primary font-medium underline underline-offset-4"
             >
               Back to sign in

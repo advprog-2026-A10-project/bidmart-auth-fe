@@ -75,7 +75,7 @@ export default function MfaEmailSetupPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {!hasSentCode ? (
-            <div className="max-w-sm space-y-4">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="email-current-password">
                   Current Password
@@ -99,11 +99,7 @@ export default function MfaEmailSetupPage() {
           ) : (
             <div className="space-y-6">
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="max-w-sm space-y-4"
-                  noValidate
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
                   <FormField
                     control={form.control}
                     name="code"
@@ -124,7 +120,7 @@ export default function MfaEmailSetupPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="flex w-full gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button asChild variant="ghost" className="w-full">
                       <Link to="/settings/security/mfa">Cancel</Link>
                     </Button>

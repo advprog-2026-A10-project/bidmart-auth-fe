@@ -104,7 +104,10 @@ export function CheckEmailContent({
         {resendMessage ? <p className="text-sm font-medium">{resendMessage}</p> : null}
 
         <p className="text-muted-foreground text-center text-sm">
-          <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">
+          <Link
+            to="/auth/login"
+            className="hover:text-primary font-medium underline underline-offset-4"
+          >
             Back to sign in
           </Link>
         </p>

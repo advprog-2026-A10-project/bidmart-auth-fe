@@ -20,7 +20,7 @@ export function VerifyEmailSuccessPage() {
         </p>
 
         <Button asChild className="w-full">
-          <Link to="/login">Continue to sign in</Link>
+          <Link to="/auth/login">Continue to sign in</Link>
         </Button>
       </div>
     </AuthCard>

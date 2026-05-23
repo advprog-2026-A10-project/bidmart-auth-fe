@@ -3,6 +3,9 @@ import { Link } from "react-router";
 import { OtpInput } from "~/shared/components/ui/otp-input";
 import { Button } from "~/shared/components/ui/button";
 
+// Matches the backend's email_mfa_cooldown policy (bidmart-auth-be).
+const RESEND_COOLDOWN_SECONDS = 30;
+
 interface MfaEmailContentProps {
   onVerify: (code: string) => void | Promise<void>;
   onResend: () => void | Promise<void>;
@@ -11,12 +14,12 @@ interface MfaEmailContentProps {
   /** True while the verify mutation is in flight. */
   isSubmitting?: boolean;
   /**
-   * Unix epoch (ms) when the parent considers the resend cooldown to expire.
-   * `null` ⇒ no cooldown active (e.g. initial mount before the first send
-   * completes). The parent sets this each time a send settles so the
-   * countdown reflects real backend cooldown, not page-mount time.
+   * Monotonically increasing counter: the parent bumps this on each manual
+   * resend. The child resets its local countdown to RESEND_COOLDOWN_SECONDS
+   * on each bump. (The initial countdown starts from component mount state,
+   * not from this signal.)
    */
-  cooldownUntil?: number | null;
+  cooldownSignal?: number;
   /**
    * Monotonically increasing signal: every time the parent wants the local
    * code state cleared (typically after a failed verify) it bumps this
@@ -29,46 +32,46 @@ interface MfaEmailContentProps {
 
 const CODE_LENGTH = 6;
 
-function remainingSeconds(cooldownUntil: number | null | undefined, now: number): number {
-  if (!cooldownUntil) return 0;
-  const diffMs = cooldownUntil - now;
-  return diffMs <= 0 ? 0 : Math.ceil(diffMs / 1000);
-}
-
 export function MfaEmailContent({
   onVerify,
   onResend,
   isSubmitting = false,
   isSending = false,
-  cooldownUntil = null,
+  cooldownSignal = 0,
   resetCodeSignal = 0,
 }: MfaEmailContentProps) {
   const [code, setCode] = useState("");
   const [resendCount, setResendCount] = useState(0);
-  // `now` is a 1-second tick driven by setInterval below. Computing the
-  // remaining countdown from (`cooldownUntil` - `now`) keeps the effect
-  // pure (no setState-in-effect): it only updates an external-clock-like
-  // value, and the render derives the rest.
-  const [now, setNow] = useState(() => Date.now());
 
-  // React "reset state on prop change" pattern (https://react.dev/reference/react/useState#storing-information-from-previous-renders):
-  // detect the signal change during render and reset `code` without an
-  // effect. React batches the setState into the same render cycle, so this
-  // does NOT cause cascading renders.
+  // "Store information from previous renders" pattern: when cooldownSignal
+  // increments (parent sends an email), reset the local countdown to
+  // RESEND_COOLDOWN_SECONDS — no Date.now() during render, no setState in
+  // effect body.
+  const [lastCooldownSignal, setLastCooldownSignal] = useState(cooldownSignal);
+  // Start at RESEND_COOLDOWN_SECONDS so the countdown is visible immediately
+  // when the page loads (mirrors CheckEmailContent's initialCooldownSeconds pattern).
+  const [cooldownSeconds, setCooldownSeconds] = useState(RESEND_COOLDOWN_SECONDS);
+  if (lastCooldownSignal !== cooldownSignal) {
+    setLastCooldownSignal(cooldownSignal);
+    setCooldownSeconds(cooldownSignal > 0 ? RESEND_COOLDOWN_SECONDS : 0);
+  }
+
   const [lastResetSignal, setLastResetSignal] = useState(resetCodeSignal);
   if (lastResetSignal !== resetCodeSignal) {
     setLastResetSignal(resetCodeSignal);
     setCode("");
   }
 
+  // Decrement the countdown one second at a time.
   useEffect(() => {
-    if (!cooldownUntil) return;
-    if (cooldownUntil <= Date.now()) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [cooldownUntil]);
+    if (cooldownSeconds <= 0) return;
+    const timer = window.setTimeout(() => {
+      setCooldownSeconds((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldownSeconds]);
 
-  const remaining = remainingSeconds(cooldownUntil, now);
+  const remaining = cooldownSeconds;
 
   function handleCodeChange(value: string) {
     const sanitized = value.replace(/\D/g, "").slice(0, CODE_LENGTH);
@@ -85,11 +88,7 @@ export function MfaEmailContent({
     setResendCount((count) => count + 1);
   }
 
-  const buttonLabel = isSending
-    ? "Sending..."
-    : remaining > 0
-      ? `Resend code (${remaining}s)`
-      : "Resend code";
+  const buttonLabel = remaining > 0 ? `Resend code (${remaining}s)` : "Resend code";
 
   return (
     <div className="space-y-4">
@@ -101,22 +100,25 @@ export function MfaEmailContent({
           disabled={isSubmitting}
         />
       </div>
-      <div className="text-center text-sm">
+      <div className="space-y-2">
         <Button
           type="button"
           variant="outline"
-          size="sm"
+          className="w-full"
           onClick={handleResend}
-          disabled={isSending || remaining > 0}
+          disabled={remaining > 0}
         >
           {buttonLabel}
         </Button>
         {resendCount > 0 ? (
-          <p className="text-muted-foreground mt-2 text-xs">Code resent ({resendCount})</p>
+          <p className="text-muted-foreground text-center text-xs">Code resent ({resendCount})</p>
         ) : null}
       </div>
       <p className="text-muted-foreground text-center text-sm">
-        <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">
+        <Link
+          to="/auth/login"
+          className="hover:text-primary font-medium underline underline-offset-4"
+        >
           Back to sign in
         </Link>
       </p>

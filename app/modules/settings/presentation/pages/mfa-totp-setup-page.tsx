@@ -19,7 +19,9 @@ import {
   FormMessage,
 } from "~/shared/components/ui/form";
 import { Input } from "~/shared/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import QRCode from "qrcode";
+import type { SetupMfaTotpResultDTO } from "~/modules/settings/application/dtos/settings.dto";
 import { useSetupMfaTotpMutation } from "../hooks/use-setup-mfa-totp-mutation";
 import { useVerifyMfaTotpMutation } from "../hooks/use-verify-mfa-totp-mutation";
 
@@ -29,16 +31,57 @@ const totpVerifySchema = z.object({
 
 type TotpVerifyFormValues = z.infer<typeof totpVerifySchema>;
 
+function isRenderableQrImageSource(value: string | undefined): value is string {
+  if (!value) return false;
+  return (
+    value.startsWith("data:image/") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://") ||
+    value.startsWith("/")
+  );
+}
+
 export default function MfaTotpSetupPage() {
   const navigate = useNavigate();
   const setupMfaTotp = useSetupMfaTotpMutation();
   const verifyMfaTotp = useVerifyMfaTotpMutation();
-  const [setupData, setSetupData] = useState<{
-    secret: string;
-    setupTicket: string;
-    otpauthUrl: string;
-  } | null>(null);
+  const [setupData, setSetupData] = useState<SetupMfaTotpResultDTO | null>(null);
+  const [qrImageSrc, setQrImageSrc] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function prepareQrImage() {
+      if (!setupData) {
+        setQrImageSrc(null);
+        return;
+      }
+
+      if (isRenderableQrImageSource(setupData.qrCodeUrl)) {
+        setQrImageSrc(setupData.qrCodeUrl);
+        return;
+      }
+
+      try {
+        const generatedQrImageSrc = await QRCode.toDataURL(setupData.otpauthUrl, {
+          width: 224,
+          margin: 1,
+          errorCorrectionLevel: "M",
+        });
+        if (!active) return;
+        setQrImageSrc(generatedQrImageSrc);
+      } catch {
+        if (!active) return;
+        setQrImageSrc(null);
+      }
+    }
+
+    void prepareQrImage();
+    return () => {
+      active = false;
+    };
+  }, [setupData]);
 
   const form = useForm<TotpVerifyFormValues>({
     resolver: zodResolver(totpVerifySchema),
@@ -108,6 +151,17 @@ export default function MfaTotpSetupPage() {
           ) : (
             <div className="space-y-6">
               <div className="bg-muted/50 flex flex-col items-center gap-4 rounded-lg border p-4">
+                {qrImageSrc ? (
+                  <img
+                    src={qrImageSrc}
+                    alt="Authenticator app QR code"
+                    className="h-56 w-56 rounded-md border bg-white p-2"
+                  />
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    QR preview unavailable. Use the setup URL below.
+                  </p>
+                )}
                 <div className="space-y-1 text-center">
                   <p className="text-muted-foreground text-sm">
                     Unable to scan? Enter this code manually:
@@ -116,17 +170,10 @@ export default function MfaTotpSetupPage() {
                     {setupData.secret}
                   </code>
                 </div>
-                <p className="text-muted-foreground max-w-full text-center font-mono text-xs break-all">
-                  {setupData.otpauthUrl}
-                </p>
               </div>
 
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="mx-auto max-w-sm space-y-4"
-                  noValidate
-                >
+                <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4">
                   <FormField
                     control={form.control}
                     name="code"
@@ -148,7 +195,7 @@ export default function MfaTotpSetupPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button asChild variant="ghost" className="w-full">
                       <Link to="/settings/security/mfa">Cancel</Link>
                     </Button>

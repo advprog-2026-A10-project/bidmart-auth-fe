@@ -32,7 +32,10 @@ export function MfaTotpContent({ onVerify, isSubmitting = false }: MfaTotpConten
       </div>
 
       <p className="text-muted-foreground text-center text-sm">
-        <Link to="/login" className="hover:text-primary font-medium underline underline-offset-4">
+        <Link
+          to="/auth/login"
+          className="hover:text-primary font-medium underline underline-offset-4"
+        >
           Use a different method
         </Link>
       </p>
