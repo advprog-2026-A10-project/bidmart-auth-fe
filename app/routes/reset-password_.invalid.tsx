@@ -1,5 +1,9 @@
-import { ResetPasswordInvalidPage } from "~/modules/auth/presentation/pages/reset-password-invalid-page";
+import { redirect } from "react-router";
 
-export default function ResetPasswordInvalidRoute() {
-  return <ResetPasswordInvalidPage />;
+export function loader() {
+  return redirect("/auth/reset-password/invalid");
+}
+
+export default function ResetPasswordInvalidRedirectRoute() {
+  return null;
 }

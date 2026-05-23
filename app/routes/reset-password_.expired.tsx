@@ -1,5 +1,9 @@
-import { ResetPasswordExpiredPage } from "~/modules/auth/presentation/pages/reset-password-expired-page";
+import { redirect } from "react-router";
 
-export default function ResetPasswordExpiredRoute() {
-  return <ResetPasswordExpiredPage />;
+export function loader() {
+  return redirect("/auth/reset-password/expired");
+}
+
+export default function ResetPasswordExpiredRedirectRoute() {
+  return null;
 }

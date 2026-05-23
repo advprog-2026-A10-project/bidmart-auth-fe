@@ -1,5 +1,9 @@
-import { RegisterPage } from "~/modules/auth/presentation/pages/register-page";
+import { redirect } from "react-router";
 
-export default function RegisterRoute() {
-  return <RegisterPage />;
+export function loader() {
+  return redirect("/auth/register");
+}
+
+export default function RegisterRedirectRoute() {
+  return null;
 }

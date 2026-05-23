@@ -1,5 +1,9 @@
-import { ResetPasswordSuccessPage } from "~/modules/auth/presentation/pages/reset-password-success-page";
+import { redirect } from "react-router";
 
-export default function ResetPasswordSuccessRoute() {
-  return <ResetPasswordSuccessPage />;
+export function loader() {
+  return redirect("/auth/reset-password/success");
+}
+
+export default function ResetPasswordSuccessRedirectRoute() {
+  return null;
 }

@@ -1,5 +1,9 @@
-import { ForgotPasswordSentPage } from "~/modules/auth/presentation/pages/forgot-password-sent-page";
+import { redirect } from "react-router";
 
-export default function ForgotPasswordSentRoute() {
-  return <ForgotPasswordSentPage />;
+export function loader() {
+  return redirect("/auth/forgot-password/sent");
+}
+
+export default function ForgotPasswordSentRedirectRoute() {
+  return null;
 }

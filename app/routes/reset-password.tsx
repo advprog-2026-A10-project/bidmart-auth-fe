@@ -1,5 +1,10 @@
-import { ResetPasswordPage } from "~/modules/auth/presentation/pages/reset-password-page";
+import { redirect, type LoaderFunctionArgs } from "react-router";
 
-export default function ResetPasswordRoute() {
-  return <ResetPasswordPage />;
+export function loader({ request }: LoaderFunctionArgs) {
+  const requestUrl = new URL(request.url);
+  return redirect(`/auth/reset-password${requestUrl.search}`);
+}
+
+export default function ResetPasswordRedirectRoute() {
+  return null;
 }
