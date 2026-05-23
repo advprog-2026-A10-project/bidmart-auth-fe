@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { LoaderFunctionArgs } from "react-router";
 import { loader as indexLoader } from "../_index";
 import { loader as authLoginLoader } from "../auth.login";
-import { loader as loginLoader } from "../login";
 
 const { validateSessionMock } = vi.hoisted(() => ({
   validateSessionMock: vi.fn(),
@@ -34,11 +33,11 @@ describe("public auth route loaders", () => {
     vi.unstubAllEnvs();
   });
 
-  it("redirects authenticated /login requests to the core app", async () => {
+  it("redirects authenticated /auth/login requests to the core app", async () => {
     validateSessionMock.mockResolvedValue(true);
 
-    const response = (await loginLoader(
-      buildLoaderArgs("http://localhost:5173/login"),
+    const response = (await authLoginLoader(
+      buildLoaderArgs("http://localhost:5173/auth/login"),
     )) as Response;
 
     expect(response.status).toBe(302);
@@ -56,15 +55,15 @@ describe("public auth route loaders", () => {
     expect(response.headers.get("Location")).toBe("http://localhost:5174/wallet");
   });
 
-  it("keeps /login accessible when there is no valid session", async () => {
+  it("keeps /auth/login accessible when there is no valid session", async () => {
     validateSessionMock.mockResolvedValue(false);
 
-    const response = await loginLoader(buildLoaderArgs("http://localhost:5173/login"));
+    const response = await authLoginLoader(buildLoaderArgs("http://localhost:5173/auth/login"));
 
     expect(response).toBeNull();
   });
 
-  it("redirects unauthenticated root requests to /login and preserves query params", async () => {
+  it("redirects unauthenticated root requests to /auth/login and preserves query params", async () => {
     validateSessionMock.mockResolvedValue(false);
 
     const response = (await indexLoader(
@@ -73,7 +72,7 @@ describe("public auth route loaders", () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.get("Location")).toBe(
-      "/login?redirect=http%3A%2F%2Flocalhost%3A5174%2Forders",
+      "/auth/login?redirect=http%3A%2F%2Flocalhost%3A5174%2Forders",
     );
   });
 });

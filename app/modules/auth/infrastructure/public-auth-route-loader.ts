@@ -20,5 +20,5 @@ export async function loadAuthIndexRoute({
   }
 
   const requestUrl = new URL(request.url);
-  return redirect(`/login${requestUrl.search}`);
+  return redirect(`/auth/login${requestUrl.search}`);
 }
