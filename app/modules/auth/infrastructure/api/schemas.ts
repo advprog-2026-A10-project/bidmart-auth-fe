@@ -17,18 +17,12 @@ export const loginApiSchema = z.object({
   accessToken: z.string().min(1),
 });
 
-export const registerApiSchema = z.object({
-  user: userApiSchema,
-  message: z.string(),
-});
-
 export const messageApiSchema = z.object({
   message: z.string(),
 });
 
 export type UserApiResponse = z.infer<typeof userApiSchema>;
 export type LoginApiResponse = z.infer<typeof loginApiSchema>;
-export type RegisterApiResponse = z.infer<typeof registerApiSchema>;
 export type MessageApiResponse = z.infer<typeof messageApiSchema>;
 
 // MFA-required response from login

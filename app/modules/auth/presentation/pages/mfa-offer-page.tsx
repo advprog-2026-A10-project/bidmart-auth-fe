@@ -4,7 +4,7 @@ import { Button } from "~/shared/components/ui/button";
 import {
   appendRedirectParam,
   resolvePostAuthRedirect,
-} from "~/modules/auth/presentation/redirect-target";
+} from "~/modules/auth/infrastructure/navigation/redirect-target";
 
 export function MfaOfferPage() {
   const [searchParams] = useSearchParams();

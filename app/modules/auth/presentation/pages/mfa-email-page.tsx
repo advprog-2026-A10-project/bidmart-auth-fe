@@ -3,13 +3,13 @@ import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaEmailContent } from "../components/mfa-email-content";
 import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
-import { clearMfaTicket, readMfaTicket } from "../mfa-ticket-storage";
+import { clearMfaTicket, readMfaTicket } from "~/modules/auth/infrastructure/storage/mfa-ticket-storage";
 import { useSendMfaEmailMutation } from "../hooks/use-send-mfa-email-mutation";
 import { useVerifyMfaEmailMutation } from "../hooks/use-verify-mfa-email-mutation";
 import {
   redirectToTarget,
   resolvePostAuthRedirect,
-} from "~/modules/auth/presentation/redirect-target";
+} from "~/modules/auth/infrastructure/navigation/redirect-target";
 
 // Backend enforces a 30-second cooldown between consecutive email-MFA sends
 // (see `policy.email_mfa_cooldown` in bidmart-auth-be). The client mirrors

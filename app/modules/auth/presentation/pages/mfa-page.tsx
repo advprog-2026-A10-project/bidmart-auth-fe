@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
-import { readMfaTicket } from "../mfa-ticket-storage";
+import { readMfaTicket } from "~/modules/auth/infrastructure/storage/mfa-ticket-storage";
 
 export function MfaPage() {
   const location = useLocation();

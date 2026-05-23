@@ -17,7 +17,6 @@ import {
   loginResponseApiSchema,
   messageApiSchema,
   mfaVerifyApiSchema,
-  registerApiSchema,
 } from "../api/schemas";
 import { AuthApiMapper } from "../api/auth-api.mapper";
 
@@ -67,7 +66,7 @@ export class AuthApiRepository implements IAuthRepository {
     confirmPassword: string;
   }): Promise<{ message: string }> {
     const raw = await apiClient.post<unknown>(`${this.basePath}/register`, data);
-    const validated = registerApiSchema.parse(raw);
+    const validated = messageApiSchema.parse(raw);
     return { message: validated.message };
   }
 

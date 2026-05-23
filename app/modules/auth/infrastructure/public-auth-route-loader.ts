@@ -1,5 +1,5 @@
 import { redirect, type LoaderFunctionArgs } from "react-router";
-import { resolvePostAuthRedirect } from "~/modules/auth/presentation/redirect-target";
+import { resolvePostAuthRedirect } from "~/modules/auth/infrastructure/navigation/redirect-target";
 import { validateSession } from "./validate-session";
 
 export async function loadGuestOnlyAuthRequest(request: Request): Promise<Response | null> {

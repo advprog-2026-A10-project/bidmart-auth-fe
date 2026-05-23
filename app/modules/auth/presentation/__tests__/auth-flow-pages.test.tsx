@@ -31,7 +31,7 @@ const forgotPasswordMutateAsyncMock = vi.fn();
 const resetPasswordMutateAsyncMock = vi.fn();
 const locationAssignMock = vi.fn();
 
-vi.mock("~/modules/auth/presentation/redirect-target", () => ({
+vi.mock("~/modules/auth/infrastructure/navigation/redirect-target", () => ({
   resolvePostAuthRedirect: (rawRedirect: string | null) => rawRedirect ?? "/",
   appendRedirectParam: (pathname: string, redirectTarget: string) =>
     `${pathname}?redirect=${encodeURIComponent(redirectTarget)}`,

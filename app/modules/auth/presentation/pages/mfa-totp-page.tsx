@@ -3,12 +3,12 @@ import { useNavigate } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaTotpContent } from "../components/mfa-totp-content";
 import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
-import { clearMfaTicket, readMfaTicket } from "../mfa-ticket-storage";
+import { clearMfaTicket, readMfaTicket } from "~/modules/auth/infrastructure/storage/mfa-ticket-storage";
 import { useVerifyMfaTotpMutation } from "../hooks/use-verify-mfa-totp-mutation";
 import {
   redirectToTarget,
   resolvePostAuthRedirect,
-} from "~/modules/auth/presentation/redirect-target";
+} from "~/modules/auth/infrastructure/navigation/redirect-target";
 
 export function MfaTotpPage() {
   const ticketState = readMfaTicket();

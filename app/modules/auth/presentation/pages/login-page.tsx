@@ -7,11 +7,11 @@ import {
   EmailNotVerifiedError,
   MfaRequiredError,
 } from "~/modules/auth/domain/errors/auth-errors";
-import { storeMfaTicket } from "../mfa-ticket-storage";
+import { storeMfaTicket } from "~/modules/auth/infrastructure/storage/mfa-ticket-storage";
 import {
   appendRedirectParam,
   resolvePostAuthRedirect,
-} from "~/modules/auth/presentation/redirect-target";
+} from "~/modules/auth/infrastructure/navigation/redirect-target";
 
 export function LoginPage() {
   const navigate = useNavigate();
