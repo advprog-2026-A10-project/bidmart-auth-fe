@@ -27,7 +27,7 @@ export function LoginPage() {
       if (error instanceof MfaRequiredError) {
         const state = { ticket: error.ticket, mfaType: error.mfaType, redirectTarget };
         storeMfaTicket(state);
-        void navigate("/auth/mfa", { state });
+        void navigate(appendRedirectParam("/auth/mfa", redirectTarget), { state });
         return;
       }
 

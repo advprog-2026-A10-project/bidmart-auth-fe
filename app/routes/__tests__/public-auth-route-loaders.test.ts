@@ -23,10 +23,7 @@ describe("public auth route loaders", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubEnv("VITE_REDIRECT_URL", "http://localhost:5174");
-    vi.stubEnv(
-      "VITE_ALLOWED_REDIRECT_ORIGINS",
-      "http://localhost:5174,http://127.0.0.1:5174",
-    );
+    vi.stubEnv("VITE_ALLOWED_REDIRECT_ORIGINS", "http://localhost:5174,http://127.0.0.1:5174");
   });
 
   afterEach(() => {
@@ -48,7 +45,9 @@ describe("public auth route loaders", () => {
     validateSessionMock.mockResolvedValue(true);
 
     const response = (await authLoginLoader(
-      buildLoaderArgs("http://localhost:5173/auth/login?redirect=http%3A%2F%2Flocalhost%3A5174%2Fwallet"),
+      buildLoaderArgs(
+        "http://localhost:5173/auth/login?redirect=http%3A%2F%2Flocalhost%3A5174%2Fwallet",
+      ),
     )) as Response;
 
     expect(response.status).toBe(302);

@@ -46,6 +46,16 @@ export class EmailNotVerifiedError extends AuthError {
 }
 
 /**
+ * UserDisabledError — thrown when trying to authenticate with a disabled account.
+ */
+export class UserDisabledError extends AuthError {
+  constructor() {
+    super("User account is disabled. Please contact support.", "USER_DISABLED", 403);
+    this.name = "UserDisabledError";
+  }
+}
+
+/**
  * InvalidVerificationTokenError — thrown when email verification token is invalid or expired.
  */
 export class InvalidVerificationTokenError extends AuthError {

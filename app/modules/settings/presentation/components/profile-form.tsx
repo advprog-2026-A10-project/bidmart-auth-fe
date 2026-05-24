@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -24,7 +25,7 @@ export type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 interface ProfileFormProps {
   defaultValues: ProfileFormValues;
-  onSubmit: (values: ProfileFormValues) => void;
+  onSubmit: (values: ProfileFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
 }
 
@@ -35,6 +36,10 @@ export function ProfileForm({ defaultValues, onSubmit, isSubmitting }: ProfileFo
     mode: "onBlur",
     reValidateMode: "onSubmit",
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues.name, defaultValues.address, defaultValues.postalCode, form]);
 
   return (
     <Form {...form}>

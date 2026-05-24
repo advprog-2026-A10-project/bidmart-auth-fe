@@ -1,13 +1,16 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getSettingsUseCases } from "~/modules/settings/infrastructure/factories/settings-repository.factory";
 import type { UpdateNotificationPreferencesDTO } from "~/modules/settings/application/dtos/settings.dto";
 
 export function useUpdateNotificationPreferencesMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: (dto: UpdateNotificationPreferencesDTO) =>
       getSettingsUseCases().updateNotificationPreferences.execute(dto),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["settings", "notifications"] });
       toast.success("Notification preferences saved.");
     },
     onError: (error: Error) => {

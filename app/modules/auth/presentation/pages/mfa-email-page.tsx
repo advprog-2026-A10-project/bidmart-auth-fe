@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaEmailContent } from "../components/mfa-email-content";
 import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
@@ -23,7 +23,10 @@ const autoSentTickets = new Set<string>();
 export function MfaEmailPage() {
   const ticketState = readMfaTicket();
   const ticket = ticketState?.mfaType === "email" ? ticketState.ticket : null;
-  const redirectTarget = resolvePostAuthRedirect(ticketState?.redirectTarget ?? null);
+  const [searchParams] = useSearchParams();
+  const redirectTarget = resolvePostAuthRedirect(
+    searchParams.get("redirect") ?? ticketState?.redirectTarget ?? null,
+  );
   const navigate = useNavigate();
   const sendMfaEmail = useSendMfaEmailMutation();
   const verifyMfaEmail = useVerifyMfaEmailMutation();
@@ -83,7 +86,6 @@ export function MfaEmailPage() {
         onVerify={handleVerify}
         onResend={handleResend}
         isSubmitting={verifyMfaEmail.isPending}
-        isSending={sendMfaEmail.isPending}
         cooldownSignal={cooldownSignal}
         resetCodeSignal={resetCodeSignal}
       />

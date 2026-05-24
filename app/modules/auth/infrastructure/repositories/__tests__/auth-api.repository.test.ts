@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NetworkError } from "~/shared/domain/errors/network-error";
-import { EmailNotVerifiedError } from "~/modules/auth/domain/errors/auth-errors";
+import { EmailNotVerifiedError, UserDisabledError } from "~/modules/auth/domain/errors/auth-errors";
 import { clearAccessToken, getAccessToken, setAccessToken } from "~/shared/infrastructure/auth";
 import { apiClient } from "~/shared/infrastructure/http/api-client";
 import { createUser } from "~/modules/auth/domain/entities/user";
@@ -81,6 +81,20 @@ describe("AuthApiRepository login", () => {
         password: "correct-password",
       }),
     ).rejects.toBeInstanceOf(EmailNotVerifiedError);
+
+    expect(getAccessToken()).toBeNull();
+    expect(getCurrentUser()).toBeNull();
+  });
+
+  it("maps a 403 disabled-user login response to UserDisabledError", async () => {
+    mockedApiClient.post.mockRejectedValue(new NetworkError("User account is disabled.", 403));
+
+    await expect(
+      new AuthApiRepository().login({
+        email: "disabled@example.com",
+        password: "correct-password",
+      }),
+    ).rejects.toBeInstanceOf(UserDisabledError);
 
     expect(getAccessToken()).toBeNull();
     expect(getCurrentUser()).toBeNull();

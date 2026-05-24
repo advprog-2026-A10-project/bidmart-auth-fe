@@ -9,8 +9,6 @@ const RESEND_COOLDOWN_SECONDS = 30;
 interface MfaEmailContentProps {
   onVerify: (code: string) => void | Promise<void>;
   onResend: () => void | Promise<void>;
-  /** True while either the initial auto-send or a manual resend is in flight. */
-  isSending?: boolean;
   /** True while the verify mutation is in flight. */
   isSubmitting?: boolean;
   /**
@@ -36,7 +34,6 @@ export function MfaEmailContent({
   onVerify,
   onResend,
   isSubmitting = false,
-  isSending = false,
   cooldownSignal = 0,
   resetCodeSignal = 0,
 }: MfaEmailContentProps) {
@@ -82,7 +79,7 @@ export function MfaEmailContent({
   }
 
   async function handleResend() {
-    if (remaining > 0 || isSending) return;
+    if (remaining > 0) return;
     setCode("");
     await onResend();
     setResendCount((count) => count + 1);

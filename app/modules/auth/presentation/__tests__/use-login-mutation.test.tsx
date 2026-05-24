@@ -46,7 +46,7 @@ describe("useLoginMutation", () => {
     vi.clearAllMocks();
   });
 
-  it("suppresses the generic error toast when login fails because email is not verified", async () => {
+  it("shows a status-specific toast when login fails because email is not verified", async () => {
     executeMock.mockRejectedValue(new EmailNotVerifiedError());
     const { result } = renderHook(() => useLoginMutation(), {
       wrapper: createWrapper(),
@@ -59,7 +59,9 @@ describe("useLoginMutation", () => {
       }),
     ).rejects.toBeInstanceOf(EmailNotVerifiedError);
 
-    expect(toastErrorMock).not.toHaveBeenCalled();
+    expect(toastErrorMock).toHaveBeenCalledWith(
+      "Email address has not been verified. Please check your inbox.",
+    );
   });
 
   it("shows the generic error toast for unexpected login failures", async () => {

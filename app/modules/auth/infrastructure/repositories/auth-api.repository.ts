@@ -9,6 +9,7 @@ import type {
 } from "~/modules/auth/domain/repositories/auth-repository.interface";
 import {
   EmailNotVerifiedError,
+  UserDisabledError,
   TokenExpiredError,
   InvalidResetTokenError,
   MfaExpiredError,
@@ -38,6 +39,9 @@ export class AuthApiRepository implements IAuthRepository {
     } catch (error) {
       if (isEmailNotVerifiedError(error)) {
         throw new EmailNotVerifiedError();
+      }
+      if (isUserDisabledError(error)) {
+        throw new UserDisabledError();
       }
       throw error;
     }
@@ -101,9 +105,16 @@ export class AuthApiRepository implements IAuthRepository {
   // ── Password reset ──────────────────────────────────────────────────────────
 
   async forgotPassword(data: { email: string }): Promise<{ message: string }> {
-    const raw = await apiClient.post<unknown>(`${this.basePath}/forgot-password`, data);
-    const validated = messageApiSchema.parse(raw);
-    return { message: validated.message };
+    try {
+      const raw = await apiClient.post<unknown>(`${this.basePath}/forgot-password`, data);
+      const validated = messageApiSchema.parse(raw);
+      return { message: validated.message };
+    } catch (error) {
+      if (isUserDisabledError(error)) {
+        throw new UserDisabledError();
+      }
+      throw error;
+    }
   }
 
   async resetPassword(data: { token: string; password: string }): Promise<{ message: string }> {
@@ -120,6 +131,9 @@ export class AuthApiRepository implements IAuthRepository {
         (error as { statusCode?: number }).statusCode === 400
       ) {
         throw new InvalidResetTokenError();
+      }
+      if (isUserDisabledError(error)) {
+        throw new UserDisabledError();
       }
       throw error;
     }
@@ -174,4 +188,18 @@ function isEmailNotVerifiedError(error: unknown): boolean {
   }
 
   return /email.*verif|verif.*email/i.test(error.message);
+}
+
+function isUserDisabledError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const statusCode =
+    "statusCode" in error ? (error as { statusCode?: number }).statusCode : undefined;
+  if (statusCode !== 403) {
+    return false;
+  }
+
+  return /account.*disabled|user.*disabled/i.test(error.message);
 }

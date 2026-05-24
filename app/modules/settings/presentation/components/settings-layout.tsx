@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router";
 import { BellIcon, LockIcon, UserIcon } from "lucide-react";
 import {
@@ -85,18 +85,18 @@ function SettingsBreadcrumb() {
         {segments.map((seg, i) => {
           const isLast = i === segments.length - 1;
           return (
-            <BreadcrumbItem key={seg.label}>
-              {!isLast && seg.href ? (
-                <>
+            <Fragment key={`${seg.label}-${i}`}>
+              <BreadcrumbItem>
+                {!isLast && seg.href ? (
                   <BreadcrumbLink asChild>
                     <Link to={seg.href}>{seg.label}</Link>
                   </BreadcrumbLink>
-                  <BreadcrumbSeparator />
-                </>
-              ) : (
-                <BreadcrumbPage>{seg.label}</BreadcrumbPage>
-              )}
-            </BreadcrumbItem>
+                ) : (
+                  <BreadcrumbPage>{seg.label}</BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+              {!isLast ? <BreadcrumbSeparator /> : null}
+            </Fragment>
           );
         })}
       </BreadcrumbList>

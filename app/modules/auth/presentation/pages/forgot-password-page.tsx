@@ -16,7 +16,10 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <AuthCard title="Forgot password?" description="Enter your email to receive a reset link.">
+    <AuthCard
+      title="Forgot password?"
+      description="If an account exists for that email, we will send a reset link."
+    >
       <ForgotPasswordForm onSubmit={handleSubmit} isSubmitting={forgotPasswordMutation.isPending} />
     </AuthCard>
   );

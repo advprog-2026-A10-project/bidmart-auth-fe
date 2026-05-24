@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { MfaTotpContent } from "../components/mfa-totp-content";
 import { MfaExpiredError } from "~/modules/auth/domain/errors/auth-errors";
@@ -16,7 +16,10 @@ import {
 export function MfaTotpPage() {
   const ticketState = readMfaTicket();
   const ticket = ticketState?.mfaType === "totp" ? ticketState.ticket : null;
-  const redirectTarget = resolvePostAuthRedirect(ticketState?.redirectTarget ?? null);
+  const [searchParams] = useSearchParams();
+  const redirectTarget = resolvePostAuthRedirect(
+    searchParams.get("redirect") ?? ticketState?.redirectTarget ?? null,
+  );
   const navigate = useNavigate();
   const verifyMfaTotp = useVerifyMfaTotpMutation();
 
@@ -43,7 +46,7 @@ export function MfaTotpPage() {
   }
 
   return (
-    <AuthCard title="Authenticator app" description="Enter the code from your authenticator app.">
+    <AuthCard title="Authenticator App" description="Enter the code from your authenticator app.">
       <MfaTotpContent onVerify={handleVerify} isSubmitting={verifyMfaTotp.isPending} />
     </AuthCard>
   );

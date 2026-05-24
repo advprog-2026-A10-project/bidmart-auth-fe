@@ -30,13 +30,12 @@ export function MfaTotpContent({ onVerify, isSubmitting = false }: MfaTotpConten
           disabled={isSubmitting}
         />
       </div>
-
       <p className="text-muted-foreground text-center text-sm">
         <Link
           to="/auth/login"
           className="hover:text-primary font-medium underline underline-offset-4"
         >
-          Use a different method
+          Back to sign in
         </Link>
       </p>
     </div>

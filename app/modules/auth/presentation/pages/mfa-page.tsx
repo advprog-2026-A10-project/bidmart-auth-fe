@@ -1,11 +1,14 @@
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { AuthCard } from "../components/auth-card";
 import { readMfaTicket } from "~/modules/auth/infrastructure/storage/mfa-ticket-storage";
+import { appendRedirectParam } from "~/modules/auth/infrastructure/navigation/redirect-target";
 
 export function MfaPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
 
   useEffect(() => {
     const state = readMfaTicket(location.state);
@@ -15,13 +18,16 @@ export function MfaPage() {
       return;
     }
 
+    const withRedirect = (path: string) =>
+      redirectParam ? appendRedirectParam(path, redirectParam) : path;
+
     if (state.mfaType === "totp") {
-      navigate("/auth/mfa/totp", { replace: true });
+      navigate(withRedirect("/auth/mfa/totp"), { replace: true });
       return;
     }
 
-    navigate("/auth/mfa/email", { replace: true });
-  }, [location.state, navigate]);
+    navigate(withRedirect("/auth/mfa/email"), { replace: true });
+  }, [location.state, navigate, redirectParam]);
 
   return (
     <AuthCard title="Verifying..." description="Selecting your multi-factor authentication method.">

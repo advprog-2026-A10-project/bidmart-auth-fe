@@ -3,6 +3,7 @@ export {
   InvalidCredentialsError,
   EmailAlreadyExistsError,
   EmailNotVerifiedError,
+  UserDisabledError,
   InvalidVerificationTokenError,
   TokenExpiredError,
   InvalidResetTokenError,

@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -17,7 +18,7 @@ export type NotificationsFormValues = z.infer<typeof notificationsFormSchema>;
 
 interface NotificationsFormProps {
   defaultValues: NotificationsFormValues;
-  onSubmit: (values: NotificationsFormValues) => void;
+  onSubmit: (values: NotificationsFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
 }
 
@@ -30,6 +31,16 @@ export function NotificationsForm({
     resolver: zodResolver(notificationsFormSchema),
     defaultValues,
   });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [
+    defaultValues.emailNotifications,
+    defaultValues.pushNotifications,
+    defaultValues.marketingEmails,
+    defaultValues.securityAlerts,
+    form,
+  ]);
 
   return (
     <Form {...form}>

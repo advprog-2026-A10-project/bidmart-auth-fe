@@ -6,11 +6,11 @@ export function ForgotPasswordSentPage() {
   return (
     <AuthCard
       title="Check your email"
-      description="We've sent a password reset link to your email address."
+      description="If an account exists for that email, a reset link has been sent."
     >
       <div className="space-y-4 text-center">
         <p className="text-muted-foreground text-sm">
-          Didn&apos;t receive it? Check your spam folder or try again.
+          Didn&apos;t receive it? Check your spam folder, then verify the email is registered.
         </p>
         <Button asChild className="w-full" variant="outline">
           <Link to="/auth/forgot-password">Try again</Link>

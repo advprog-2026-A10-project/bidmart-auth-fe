@@ -6,7 +6,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   if (await validateSession(request)) return null;
 
   const requestedUrl = new URL(request.url);
-  throw redirect(`/login?redirect=${encodeURIComponent(requestedUrl.toString())}`);
+  throw redirect(`/auth/login?redirect=${encodeURIComponent(requestedUrl.toString())}`);
 }
 
 export default function SettingsLayoutRoute() {
