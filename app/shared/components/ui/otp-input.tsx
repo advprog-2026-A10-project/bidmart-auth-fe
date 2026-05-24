@@ -72,7 +72,7 @@ export function OtpInput({ length = 6, value, onChange, disabled, className }: O
   }
 
   return (
-    <div className={cn("flex gap-2", className)} role="group" aria-label="One-time code">
+    <div className={cn("flex gap-1.5 md:gap-2", className)} role="group" aria-label="One-time code">
       {digits.map((digit, index) => (
         <Input
           key={index}
@@ -87,7 +87,7 @@ export function OtpInput({ length = 6, value, onChange, disabled, className }: O
           disabled={disabled}
           aria-label={`Digit ${index + 1}`}
           autoComplete={index === 0 ? "one-time-code" : "off"}
-          className="h-12 w-12 text-center text-lg font-semibold tabular-nums"
+          className="h-10 w-10 text-center text-base font-semibold tabular-nums md:h-12 md:w-12 md:text-lg"
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}

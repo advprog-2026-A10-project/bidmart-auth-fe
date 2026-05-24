@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { LoaderFunctionArgs } from "react-router";
 import { loader as indexLoader } from "../_index";
 import { loader as authLoginLoader } from "../auth.login";
+import { loader as authRegisterLoader } from "../auth.register";
 
 const { validateSessionMock } = vi.hoisted(() => ({
   validateSessionMock: vi.fn(),
@@ -35,6 +36,17 @@ describe("public auth route loaders", () => {
 
     const response = (await authLoginLoader(
       buildLoaderArgs("http://localhost:5173/auth/login"),
+    )) as Response;
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe("http://localhost:5174/");
+  });
+
+  it("applies the same guest-only guard to /auth/register", async () => {
+    validateSessionMock.mockResolvedValue(true);
+
+    const response = (await authRegisterLoader(
+      buildLoaderArgs("http://localhost:5173/auth/register"),
     )) as Response;
 
     expect(response.status).toBe(302);
