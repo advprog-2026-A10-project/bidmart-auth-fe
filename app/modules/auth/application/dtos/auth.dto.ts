@@ -4,9 +4,11 @@ export type LoginDTO = {
 };
 
 export type RegisterDTO = {
-  name: string;
+  firstName: string;
+  lastName?: string;
   email: string;
   password: string;
+  confirmPassword: string;
 };
 
 export type VerifyEmailDTO = {
@@ -15,4 +17,27 @@ export type VerifyEmailDTO = {
 
 export type ResendVerificationDTO = {
   email: string;
+};
+
+export type ForgotPasswordDTO = {
+  email: string;
+};
+
+export type ResetPasswordDTO = {
+  token: string;
+  password: string;
+};
+
+export type VerifyMfaTotpDTO = {
+  ticket: string;
+  code: string;
+};
+
+export type SendMfaEmailDTO = {
+  ticket: string;
+};
+
+export type VerifyMfaEmailDTO = {
+  ticket: string;
+  code: string;
 };

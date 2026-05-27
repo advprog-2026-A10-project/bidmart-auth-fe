@@ -15,6 +15,11 @@ function createMockRepository(): MockedObject<IAuthRepository> {
     verifyEmail: vi.fn(),
     resendVerification: vi.fn(),
     logout: vi.fn(),
+    forgotPassword: vi.fn(),
+    resetPassword: vi.fn(),
+    verifyMfaTotp: vi.fn(),
+    sendMfaEmail: vi.fn(),
+    verifyMfaEmail: vi.fn(),
   };
 }
 
@@ -35,7 +40,7 @@ describe("LoginUseCase", () => {
   });
 
   it("returns a UserDTO on successful login", async () => {
-    repo.login.mockResolvedValue(mockUser);
+    repo.login.mockResolvedValue({ requiresMfa: false, user: mockUser });
 
     const result = await useCase.execute({ email: "alice@example.com", password: "secret" });
 
@@ -70,16 +75,20 @@ describe("RegisterUseCase", () => {
     repo.register.mockResolvedValue({ message: "Check your email." });
 
     const result = await useCase.execute({
-      name: "Alice",
+      firstName: "Alice",
+      lastName: "Johnson",
       email: "alice@example.com",
       password: "secret123",
+      confirmPassword: "secret123",
     });
 
     expect(result.message).toBe("Check your email.");
     expect(repo.register).toHaveBeenCalledWith({
-      name: "Alice",
+      firstName: "Alice",
+      lastName: "Johnson",
       email: "alice@example.com",
       password: "secret123",
+      confirmPassword: "secret123",
     });
   });
 });

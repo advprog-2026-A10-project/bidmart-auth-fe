@@ -1,0 +1,29 @@
+import { Link } from "react-router";
+import { AuthCard } from "../components/auth-card";
+import { Button } from "~/shared/components/ui/button";
+
+export function ForgotPasswordSentPage() {
+  return (
+    <AuthCard
+      title="Check your email"
+      description="If an account exists for that email, a reset link has been sent."
+    >
+      <div className="space-y-4 text-center">
+        <p className="text-muted-foreground text-sm">
+          Didn&apos;t receive it? Check your spam folder, then verify the email is registered.
+        </p>
+        <Button asChild className="w-full" variant="outline">
+          <Link to="/auth/forgot-password">Try again</Link>
+        </Button>
+        <p className="text-muted-foreground text-sm">
+          <Link
+            to="/auth/login"
+            className="hover:text-primary font-medium underline underline-offset-4"
+          >
+            Back to sign in
+          </Link>
+        </p>
+      </div>
+    </AuthCard>
+  );
+}

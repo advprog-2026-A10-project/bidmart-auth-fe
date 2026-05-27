@@ -10,9 +10,11 @@ export class RegisterUseCase {
 
   async execute(dto: RegisterDTO): Promise<{ message: string }> {
     return this.authRepository.register({
-      name: dto.name,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       email: dto.email,
       password: dto.password,
+      confirmPassword: dto.confirmPassword,
     });
   }
 }

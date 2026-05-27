@@ -1,7 +1,24 @@
 import { apiClient } from "~/shared/infrastructure/http/api-client";
+import { clearAccessToken, setAccessToken } from "~/shared/infrastructure/auth";
+import { GoneError } from "~/shared/domain/errors/gone-error";
 import type { User } from "~/modules/auth/domain/entities/user";
-import type { IAuthRepository } from "~/modules/auth/domain/repositories/auth-repository.interface";
-import { loginApiSchema, messageApiSchema, registerApiSchema } from "../api/schemas";
+import { clearCurrentUser, setCurrentUser } from "../current-user-state";
+import type {
+  IAuthRepository,
+  MfaLoginResult,
+} from "~/modules/auth/domain/repositories/auth-repository.interface";
+import {
+  EmailNotVerifiedError,
+  UserDisabledError,
+  TokenExpiredError,
+  InvalidResetTokenError,
+  MfaExpiredError,
+} from "~/modules/auth/domain/errors/auth-errors";
+import {
+  loginResponseApiSchema,
+  messageApiSchema,
+  mfaVerifyApiSchema,
+} from "../api/schemas";
 import { AuthApiMapper } from "../api/auth-api.mapper";
 
 /**
@@ -15,26 +32,60 @@ import { AuthApiMapper } from "../api/auth-api.mapper";
 export class AuthApiRepository implements IAuthRepository {
   private readonly basePath = "/auth";
 
-  async login(credentials: { email: string; password: string }): Promise<User> {
-    const raw = await apiClient.post<unknown>(`${this.basePath}/login`, credentials);
-    const validated = loginApiSchema.parse(raw);
-    return AuthApiMapper.toDomain(validated.user);
+  async login(credentials: { email: string; password: string }): Promise<MfaLoginResult> {
+    let raw: unknown;
+    try {
+      raw = await apiClient.post<unknown>(`${this.basePath}/login`, credentials);
+    } catch (error) {
+      if (isEmailNotVerifiedError(error)) {
+        throw new EmailNotVerifiedError();
+      }
+      if (isUserDisabledError(error)) {
+        throw new UserDisabledError();
+      }
+      throw error;
+    }
+
+    const validated = loginResponseApiSchema.parse(raw);
+
+    if (validated.requiresMfa === true) {
+      return {
+        requiresMfa: true,
+        ticket: validated.ticket,
+        mfaType: validated.mfaType,
+      };
+    }
+
+    const user = AuthApiMapper.toDomain(validated.user);
+    setAccessToken(validated.accessToken);
+    setCurrentUser(user);
+    return { requiresMfa: false, user };
   }
 
   async register(data: {
-    name: string;
+    firstName: string;
+    lastName?: string;
     email: string;
     password: string;
+    confirmPassword: string;
   }): Promise<{ message: string }> {
     const raw = await apiClient.post<unknown>(`${this.basePath}/register`, data);
-    const validated = registerApiSchema.parse(raw);
+    const validated = messageApiSchema.parse(raw);
     return { message: validated.message };
   }
 
   async verifyEmail(data: { token: string }): Promise<{ message: string }> {
-    const raw = await apiClient.post<unknown>(`${this.basePath}/verify-email`, data);
-    const validated = messageApiSchema.parse(raw);
-    return { message: validated.message };
+    try {
+      const raw = await apiClient.post<unknown>(`${this.basePath}/verify-email`, data);
+      const validated = mfaVerifyApiSchema.parse(raw);
+      const user = AuthApiMapper.toDomain(validated.user);
+      setAccessToken(validated.accessToken);
+      setCurrentUser(user);
+      return { message: "Email verified." };
+    } catch (error) {
+      if (error instanceof GoneError) throw new TokenExpiredError();
+      throw error;
+    }
   }
 
   async resendVerification(data: { email: string }): Promise<{ message: string }> {
@@ -44,6 +95,114 @@ export class AuthApiRepository implements IAuthRepository {
   }
 
   async logout(): Promise<void> {
-    await apiClient.post<void>(`${this.basePath}/logout`);
+    try {
+      await apiClient.post<void>(`${this.basePath}/logout`);
+    } catch {
+      // Local memory is the source of truth for Bearer auth state.
+    } finally {
+      clearAccessToken();
+      clearCurrentUser();
+    }
   }
+
+  // ── Password reset ──────────────────────────────────────────────────────────
+
+  async forgotPassword(data: { email: string }): Promise<{ message: string }> {
+    try {
+      const raw = await apiClient.post<unknown>(`${this.basePath}/forgot-password`, data);
+      const validated = messageApiSchema.parse(raw);
+      return { message: validated.message };
+    } catch (error) {
+      if (isUserDisabledError(error)) {
+        throw new UserDisabledError();
+      }
+      throw error;
+    }
+  }
+
+  async resetPassword(data: { token: string; password: string }): Promise<{ message: string }> {
+    try {
+      const raw = await apiClient.post<unknown>(`${this.basePath}/reset-password`, data);
+      const validated = messageApiSchema.parse(raw);
+      return { message: validated.message };
+    } catch (error) {
+      if (error instanceof GoneError) throw new TokenExpiredError();
+      // Treat a 400-level network error with "invalid" in message as invalid token
+      if (
+        error instanceof Error &&
+        "statusCode" in error &&
+        (error as { statusCode?: number }).statusCode === 400
+      ) {
+        throw new InvalidResetTokenError();
+      }
+      if (isUserDisabledError(error)) {
+        throw new UserDisabledError();
+      }
+      throw error;
+    }
+  }
+
+  // ── MFA ─────────────────────────────────────────────────────────────────────
+
+  async verifyMfaTotp(data: { ticket: string; code: string }): Promise<User> {
+    try {
+      const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/verify-totp`, data);
+      const validated = mfaVerifyApiSchema.parse(raw);
+      const user = AuthApiMapper.toDomain(validated.user);
+      setAccessToken(validated.accessToken);
+      setCurrentUser(user);
+      return user;
+    } catch (error) {
+      if (error instanceof GoneError) throw new MfaExpiredError();
+      throw error;
+    }
+  }
+
+  async sendMfaEmail(data: { ticket: string }): Promise<{ message: string }> {
+    const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/send-email`, data);
+    const validated = messageApiSchema.parse(raw);
+    return { message: validated.message };
+  }
+
+  async verifyMfaEmail(data: { ticket: string; code: string }): Promise<User> {
+    try {
+      const raw = await apiClient.post<unknown>(`${this.basePath}/mfa/verify-email`, data);
+      const validated = mfaVerifyApiSchema.parse(raw);
+      const user = AuthApiMapper.toDomain(validated.user);
+      setAccessToken(validated.accessToken);
+      setCurrentUser(user);
+      return user;
+    } catch (error) {
+      if (error instanceof GoneError) throw new MfaExpiredError();
+      throw error;
+    }
+  }
+}
+
+function isEmailNotVerifiedError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const statusCode =
+    "statusCode" in error ? (error as { statusCode?: number }).statusCode : undefined;
+  if (statusCode !== 403) {
+    return false;
+  }
+
+  return /email.*verif|verif.*email/i.test(error.message);
+}
+
+function isUserDisabledError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const statusCode =
+    "statusCode" in error ? (error as { statusCode?: number }).statusCode : undefined;
+  if (statusCode !== 403) {
+    return false;
+  }
+
+  return /account.*disabled|user.*disabled/i.test(error.message);
 }

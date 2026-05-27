@@ -4,7 +4,12 @@ import { RegisterUseCase } from "~/modules/auth/application/use-cases/register.u
 import { VerifyEmailUseCase } from "~/modules/auth/application/use-cases/verify-email.use-case";
 import { ResendVerificationUseCase } from "~/modules/auth/application/use-cases/resend-verification.use-case";
 import { LogoutUseCase } from "~/modules/auth/application/use-cases/logout.use-case";
-import type { UserDTO } from "~/modules/auth/application/dtos/user.dto";
+import { ForgotPasswordUseCase } from "~/modules/auth/application/use-cases/forgot-password.use-case";
+import { ResetPasswordUseCase } from "~/modules/auth/application/use-cases/reset-password.use-case";
+import { VerifyMfaTotpUseCase } from "~/modules/auth/application/use-cases/verify-mfa-totp.use-case";
+import { SendMfaEmailUseCase } from "~/modules/auth/application/use-cases/send-mfa-email.use-case";
+import { VerifyMfaEmailUseCase } from "~/modules/auth/application/use-cases/verify-mfa-email.use-case";
+export { clearCurrentUser, getCurrentUser, setCurrentUser } from "../current-user-state";
 
 /**
  * AuthUseCaseFactory — wires up the dependency graph for the auth module.
@@ -19,6 +24,11 @@ export type AuthUseCases = {
   verifyEmail: VerifyEmailUseCase;
   resendVerification: ResendVerificationUseCase;
   logout: LogoutUseCase;
+  forgotPassword: ForgotPasswordUseCase;
+  resetPassword: ResetPasswordUseCase;
+  verifyMfaTotp: VerifyMfaTotpUseCase;
+  sendMfaEmail: SendMfaEmailUseCase;
+  verifyMfaEmail: VerifyMfaEmailUseCase;
 };
 
 export function createAuthUseCases(): AuthUseCases {
@@ -30,6 +40,11 @@ export function createAuthUseCases(): AuthUseCases {
     verifyEmail: new VerifyEmailUseCase(authRepository),
     resendVerification: new ResendVerificationUseCase(authRepository),
     logout: new LogoutUseCase(authRepository),
+    forgotPassword: new ForgotPasswordUseCase(authRepository),
+    resetPassword: new ResetPasswordUseCase(authRepository),
+    verifyMfaTotp: new VerifyMfaTotpUseCase(authRepository),
+    sendMfaEmail: new SendMfaEmailUseCase(authRepository),
+    verifyMfaEmail: new VerifyMfaEmailUseCase(authRepository),
   };
 }
 
@@ -41,19 +56,4 @@ export function getAuthUseCases(): AuthUseCases {
     _authUseCases = createAuthUseCases();
   }
   return _authUseCases;
-}
-
-// In-memory auth session (cleared on logout; persisted server-side via httpOnly cookie)
-let _currentUser: UserDTO | null = null;
-
-export function setCurrentUser(user: UserDTO): void {
-  _currentUser = user;
-}
-
-export function getCurrentUser(): UserDTO | null {
-  return _currentUser;
-}
-
-export function clearCurrentUser(): void {
-  _currentUser = null;
 }
