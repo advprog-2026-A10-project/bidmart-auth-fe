@@ -4,6 +4,10 @@ import { AuthCard } from "../components/auth-card";
 import { useVerifyEmailMutation } from "../hooks/use-verify-email-mutation";
 import { TokenExpiredError } from "~/modules/auth/domain/errors/auth-errors";
 import { GoneError } from "~/shared/domain/errors/gone-error";
+import {
+  redirectToTarget,
+  resolvePostAuthRedirect,
+} from "~/modules/auth/infrastructure/navigation/redirect-target";
 
 const pendingVerificationTokens = new Set<string>();
 const verifiedEmailTokens = new Set<string>();
@@ -11,6 +15,7 @@ const verifiedEmailTokens = new Set<string>();
 export function VerifyEmailTokenPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const redirectTarget = resolvePostAuthRedirect(searchParams.get("redirect"));
   const navigate = useNavigate();
   const verifyEmail = useVerifyEmailMutation();
 
@@ -21,7 +26,7 @@ export function VerifyEmailTokenPage() {
     }
 
     if (verifiedEmailTokens.has(token)) {
-      void navigate("/auth/verify-email/success", { replace: true });
+      redirectToTarget(redirectTarget);
       return;
     }
 
@@ -34,11 +39,11 @@ export function VerifyEmailTokenPage() {
       .mutateAsync({ token })
       .then(() => {
         verifiedEmailTokens.add(token);
-        void navigate("/auth/verify-email/success", { replace: true });
+        redirectToTarget(redirectTarget);
       })
       .catch((error: unknown) => {
         if (verifiedEmailTokens.has(token)) {
-          void navigate("/auth/verify-email/success", { replace: true });
+          redirectToTarget(redirectTarget);
           return;
         }
 
@@ -61,7 +66,7 @@ export function VerifyEmailTokenPage() {
       .finally(() => {
         pendingVerificationTokens.delete(token);
       });
-  }, [navigate, token, verifyEmail]);
+  }, [navigate, redirectTarget, token, verifyEmail]);
 
   return (
     <AuthCard title="Verifying your email" description="Please wait a moment...">

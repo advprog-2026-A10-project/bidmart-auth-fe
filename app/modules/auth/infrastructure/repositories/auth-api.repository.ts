@@ -77,8 +77,11 @@ export class AuthApiRepository implements IAuthRepository {
   async verifyEmail(data: { token: string }): Promise<{ message: string }> {
     try {
       const raw = await apiClient.post<unknown>(`${this.basePath}/verify-email`, data);
-      const validated = messageApiSchema.parse(raw);
-      return { message: validated.message };
+      const validated = mfaVerifyApiSchema.parse(raw);
+      const user = AuthApiMapper.toDomain(validated.user);
+      setAccessToken(validated.accessToken);
+      setCurrentUser(user);
+      return { message: "Email verified." };
     } catch (error) {
       if (error instanceof GoneError) throw new TokenExpiredError();
       throw error;
