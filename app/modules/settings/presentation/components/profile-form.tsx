@@ -1,0 +1,105 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Button } from "~/shared/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "~/shared/components/ui/form";
+import { Input } from "~/shared/components/ui/input";
+import { Textarea } from "~/shared/components/ui/textarea";
+
+const profileFormSchema = z.object({
+  name: z.string().min(1, "Full name is required."),
+  address: z.string().min(1, "Address is required."),
+  postalCode: z.string().min(1, "Postal code is required."),
+});
+
+export type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+interface ProfileFormProps {
+  defaultValues: ProfileFormValues;
+  onSubmit: (values: ProfileFormValues) => Promise<void> | void;
+  isSubmitting?: boolean;
+}
+
+export function ProfileForm({ defaultValues, onSubmit, isSubmitting }: ProfileFormProps) {
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues,
+    mode: "onBlur",
+    reValidateMode: "onSubmit",
+  });
+
+  useEffect(() => {
+    form.reset(defaultValues);
+  }, [defaultValues.name, defaultValues.address, defaultValues.postalCode, form]);
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Your full name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Your address" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="postalCode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Postal Code</FormLabel>
+              <FormControl>
+                <Input placeholder="Your postal code" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div
+          className={[
+            "bg-background fixed right-0 bottom-0 left-0 z-10 flex items-center justify-between border-t px-6 py-3 shadow-md transition-transform duration-200",
+            form.formState.isDirty ? "translate-y-0" : "translate-y-full",
+          ].join(" ")}
+        >
+          <p className="text-muted-foreground text-sm">You have unsaved changes.</p>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => form.reset()}>
+              Discard
+            </Button>
+            <Button type="submit" size="sm" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </Form>
+  );
+}

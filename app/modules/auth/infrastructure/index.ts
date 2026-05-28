@@ -8,3 +8,4 @@ export {
   clearCurrentUser,
 } from "./factories/auth-repository.factory";
 export type { AuthUseCases } from "./factories/auth-repository.factory";
+export { validateSession } from "./validate-session";

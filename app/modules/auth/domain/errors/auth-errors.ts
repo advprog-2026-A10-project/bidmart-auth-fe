@@ -46,15 +46,65 @@ export class EmailNotVerifiedError extends AuthError {
 }
 
 /**
+ * UserDisabledError — thrown when trying to authenticate with a disabled account.
+ */
+export class UserDisabledError extends AuthError {
+  constructor() {
+    super("User account is disabled. Please contact support.", "USER_DISABLED", 403);
+    this.name = "UserDisabledError";
+  }
+}
+
+/**
  * InvalidVerificationTokenError — thrown when email verification token is invalid or expired.
  */
 export class InvalidVerificationTokenError extends AuthError {
   constructor() {
-    super(
-      "Verification token is invalid or has expired.",
-      "INVALID_VERIFICATION_TOKEN",
-      400,
-    );
+    super("Verification token is invalid or has expired.", "INVALID_VERIFICATION_TOKEN", 400);
     this.name = "InvalidVerificationTokenError";
+  }
+}
+
+/**
+ * TokenExpiredError — thrown when a reset-password or MFA token has expired (HTTP 410).
+ */
+export class TokenExpiredError extends AuthError {
+  constructor(message = "This link has expired.") {
+    super(message, "TOKEN_EXPIRED", 410);
+    this.name = "TokenExpiredError";
+  }
+}
+
+/**
+ * InvalidResetTokenError — thrown when a reset-password token is invalid (HTTP 400).
+ */
+export class InvalidResetTokenError extends AuthError {
+  constructor() {
+    super("This password reset link is invalid.", "INVALID_RESET_TOKEN", 400);
+    this.name = "InvalidResetTokenError";
+  }
+}
+
+/**
+ * MfaRequiredError — thrown by the login use-case when the backend requires MFA.
+ * Carries the MFA ticket and method so the caller can redirect to the correct MFA route.
+ */
+export class MfaRequiredError extends AuthError {
+  constructor(
+    public readonly ticket: string,
+    public readonly mfaType: "totp" | "email",
+  ) {
+    super("Multi-factor authentication is required.", "MFA_REQUIRED", 200);
+    this.name = "MfaRequiredError";
+  }
+}
+
+/**
+ * MfaExpiredError — thrown when an MFA code or ticket has expired (HTTP 410).
+ */
+export class MfaExpiredError extends AuthError {
+  constructor() {
+    super("The MFA code has expired. Please try again.", "MFA_EXPIRED", 410);
+    this.name = "MfaExpiredError";
   }
 }
