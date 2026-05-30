@@ -7,10 +7,10 @@ export function useSetupMfaEmailMutation() {
   return useMutation({
     mutationFn: (dto: SetupMfaEmailDTO) => getSettingsUseCases().setupMfaEmail.execute(dto),
     onSuccess: () => {
-      toast.success("Verification email sent.");
+      toast.success("MFA code sent.");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to send verification email.");
+      toast.error(error.message || "Failed to send MFA code.");
     },
   });
 }

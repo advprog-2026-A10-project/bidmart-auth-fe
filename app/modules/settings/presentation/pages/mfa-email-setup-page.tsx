@@ -60,7 +60,7 @@ export default function MfaEmailSetupPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Set up Email MFA</h2>
         <p className="text-muted-foreground">
-          Receive a verification code via email to secure your account.
+          Receive a one-time MFA code via email to secure your account.
         </p>
       </div>
 
@@ -69,8 +69,8 @@ export default function MfaEmailSetupPage() {
           <CardTitle>{!hasSentCode ? "Send Code" : "Verify Code"}</CardTitle>
           <CardDescription>
             {!hasSentCode
-              ? "Click below to send a verification code to your email address."
-              : "Enter the code sent to your email address."}
+              ? "Click below to send a one-time MFA code to your email address."
+              : "Enter the MFA code sent to your email address."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -93,7 +93,7 @@ export default function MfaEmailSetupPage() {
                 disabled={setupMfaEmail.isPending || currentPassword.trim() === ""}
                 className="w-full sm:w-auto"
               >
-                {setupMfaEmail.isPending ? "Sending..." : "Send Verification Code"}
+                {setupMfaEmail.isPending ? "Sending..." : "Send MFA Code"}
               </Button>
             </div>
           ) : (
@@ -105,10 +105,10 @@ export default function MfaEmailSetupPage() {
                     name="code"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Verification Code</FormLabel>
+                        <FormLabel>MFA Code</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter code"
+                            placeholder="Enter MFA code"
                             autoComplete="one-time-code"
                             inputMode="numeric"
                             pattern="[0-9]*"

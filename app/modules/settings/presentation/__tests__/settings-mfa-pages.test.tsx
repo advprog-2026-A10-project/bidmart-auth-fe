@@ -143,12 +143,12 @@ describe("settings MFA pages", () => {
 
     renderWithProviders(<MfaEmailSetupPage />);
     await user.type(screen.getByLabelText(/current password/i), "currentPass123");
-    await user.click(screen.getByRole("button", { name: /send verification code/i }));
+    await user.click(screen.getByRole("button", { name: /send mfa code/i }));
     await waitFor(() =>
       expect(setupEmailMock).toHaveBeenCalledWith({ currentPassword: "currentPass123" }),
     );
 
-    await user.type(screen.getByLabelText(/verification code/i), "123456");
+    await user.type(screen.getByLabelText(/mfa code/i), "123456");
     await user.click(screen.getByRole("button", { name: /^verify$/i }));
 
     await waitFor(() => {
